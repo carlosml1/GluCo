@@ -1,0 +1,35 @@
+
+/* Estilo fondo del navegador superior */
+.mdl-layout__header,
+.mdl-layout__header .mdl-layout__header-row {
+  background-color: #924967 !important;
+}
+
+/* Estilo letras del navegador */
+.mdl-layout-title , .mdl-navigation__link{
+  color: white !important;
+}
+
+/* Estilo fondo del drawer */
+.mdl-layout__drawer {
+  background-color: #924967 !important;   
+}
+
+/* Estilo fondo hover de los items de navegación */
+.mdl-navigation__link:hover {
+  background-color: #AA6C39 !important;
+}
+
+/* Estilo fondo de la web */
+body {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #499273, #AA6C39);
+}
+
+
+/* 
+Botones -> 11FF00 
+Fondo -> 499273 -> AA6C39
+
+
+*/
