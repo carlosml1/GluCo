@@ -1,51 +1,283 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>MDL Test Local</title>
 
-    <!-- Style de la web material -->
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-orange.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+<head>
+  <meta charset="utf-8">
+  <title>GluCo</title>
 
-    <!-- Style propio -->
-    <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="imagenes/logoWeb.png">
+  <link rel="shortcut icon" type="image/png" href="imagenes/logoWeb.png">
+  <link rel="apple-touch-icon" href="imagenes/logoWeb.png">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  </head>
-  <body>
-  
-<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-  <header class="mdl-layout__header">
-    <div class="mdl-layout__header-row">
-      <a class="mdl-layout-title" href="#top">
-      <img src="imagenes/botonImgTitulo.png" style="height:50px;">
-    </a>
-      <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation mdl-layout--large-screen-only">
-        <a class="mdl-navigation__link" href="">Productos</a>
-        <a class="mdl-navigation__link" href="">Escaner</a>
-        <a class="mdl-navigation__link" href="">Tablon</a>
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-orange.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+
+    <!-- HEADER -->
+    <header class="mdl-layout__header">
+      <div class="mdl-layout__header-row">
+
+        <!-- Menú (a la izquierda) -->
+        <span class="menu-text">Menú</span>
+
+        <div class="mdl-layout-spacer"></div>
+
+        <!-- Logo centrado -->
+        <a class="mdl-layout-title centered-logo" href="#top" id="btnHomeHeader">
+          <img src="imagenes/botonImgTitulo.png" style="height:50px;">
+        </a>
+
+        <div class="mdl-layout-spacer"></div>
+
+        <!-- Navegación derecha -->
+        <nav class="mdl-navigation mdl-layout--large-screen-only">
+          <a class="mdl-navigation__link" href="#" id="btnProductos">Productos</a>
+          <a class="mdl-navigation__link" href="#">Escaner</a>
+          <a class="mdl-navigation__link" href="#">Tablon</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- DRAWER -->
+    <div class="mdl-layout__drawer">
+      <span class="mdl-layout-title">Menú</span>
+      <nav class="mdl-navigation">
+        <a class="mdl-navigation__link" href="#" id="btnProductos2">Productos</a>
+        <a class="mdl-navigation__link" href="#">Escaner</a>
+        <a class="mdl-navigation__link" href="#">Tablon</a>
       </nav>
     </div>
-  </header>
 
-  <div class="mdl-layout__drawer">
-    <a class="mdl-layout-title" href="#top">
-      <img src="imagenes/botonImgTitulo.png" style="height:50px;">
-    </a>
-    <nav class="mdl-navigation">
-      <a class="mdl-navigation__link" href="">Productos</a>
-        <a class="mdl-navigation__link" href="">Escaner</a>
-        <a class="mdl-navigation__link" href="">Tablon</a>
-    </nav>
+    <!-- HOME -->
+    <main class="mdl-layout__content" id="homeView"
+      style="display:flex; align-items:center; justify-content:center; height:100vh;">
+      <h3 style="color:white;">Bienvenido</h3>
+    </main>
+
+    <!-- PRODUCTOS -->
+    <main class="mdl-layout__content" id="vistaProductos" style="display:none;">
+      <div class="page-content">
+
+        <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin-top:20px;">
+          <div class="filterBox">
+            <input class="mdl-textfield__input" type="text" id="searchBox"
+              placeholder="Buscar por nombre, empresa o código...">
+          </div>
+          <div class="filterBox">
+            <select id="catSelect" class="mdl-textfield__input" style="width:180px;">
+              <option value="Todas">Todas</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="cardsContainer"
+          style="padding:30px; display:grid; grid-template-columns:repeat(auto-fill,minmax(380px,1fr)); gap:30px;">
+        </div>
+
+      </div>
+    </main>
+
   </div>
 
-  <main class="mdl-layout__content">
-    <div class="page-content">Tu contenido va aquí</div>
-  </main>
-</div>
 
-  </body>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyALHRvYyTQSTytCPZfbYxd8nmQn0-MGRNg",
+      authDomain: "productosceliacos-25779.firebaseapp.com",
+      projectId: "productosceliacos-25779",
+      storageBucket: "productosceliacos-25779.appspot.com",
+      messagingSenderId: "499586918138",
+      appId: "1:499586918138:web:ca4aa40434bc3e7c144b43",
+      measurementId: "G-6YXHT51EXT"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const CATS = ["Pan", "Snack", "Bebida", "Pasta", "Pizza", "Dulce", "Cereales", "Pastel", "Reposteria", "Congelado", "Helado", "Cerveza", "Batido", "Embutido", "Salsa"];
+
+    const searchBox = document.getElementById("searchBox");
+    const catSelect = document.getElementById("catSelect");
+    const cardsTarget = document.getElementById("cardsContainer");
+
+    let productos = [];
+    let isLoading = false;
+
+    CATS.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      catSelect.appendChild(opt);
+    });
+
+    async function card(d) {
+      let bigImg = `imgProductos/${d.id}.png`;
+      let emp = (d.NombreEmpresa || "").toLowerCase().trim();
+      emp = emp.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      emp = emp.replace(/[^a-z0-9]/g, "");
+      let smallImg = `imgEmpresas/${emp}.png`;
+
+      return `
+    <div class="demo-card-wide mdl-card mdl-shadow--2dp"style="border-radius:14px;overflow:hidden;background:#499273">
+      <div class="mdl-card__title"
+        style="height:176px;background-image:url('${bigImg}');background-size:contain;background-position:center;background-repeat:no-repeat;margin:5px;"></div>
+      <div style="display:flex;justify-content:center;margin-top:-30px;">
+        <img src="${smallImg}" style="width:100px;height:100px;border-radius:50%;border:3px solid white;object-fit:contain;background:#924967;padding:8px;">
+      </div>
+      <div class="mdl-card__supporting-text" style="display:block;width:100%;text-align:center;background:#AA6C39">
+        <strong>${escapeHtml(d.NombreEmpresa || '')}</strong>
+        ${d.Nombre ? `<div style="font-size:0.9em;color:black;margin-top:6px;">${escapeHtml(d.Nombre)}</div>` : ``}
+        ${d.Ok ? `<div style="font-size:0.85em;color:white;margin-top:8px;">${escapeHtml(d.Ok)}</div>` : ``}
+      </div>
+    </div>`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function render() {
+      const q = (searchBox.value || '').toLowerCase().trim();
+      const cat = (catSelect.value || 'Todas');
+
+      cardsTarget.innerHTML = "";
+
+      if (isLoading) {
+        const p = document.createElement('div');
+        p.textContent = "Cargando productos...";
+        p.style.gridColumn = '1/-1';
+        p.style.textAlign = 'center';
+        p.style.fontSize = '1.1rem';
+        p.style.color = '#fff';
+        cardsTarget.appendChild(p);
+        return;
+      }
+
+      if (productos.length === 0) {
+        const p = document.createElement('div');
+        p.textContent = "No hay productos disponibles.";
+        p.style.gridColumn = '1/-1';
+        p.style.textAlign = 'center';
+        p.style.fontSize = '1.1rem';
+        p.style.color = '#fff';
+        cardsTarget.appendChild(p);
+        return;
+      }
+
+      const results = productos
+        .filter(d => (!cat || cat === 'Todas') ? true : (d.tipoProducto === cat))
+        .filter(d => {
+          if (!q) return true;
+          const nombreEmpresa = (d.NombreEmpresa || '').toLowerCase();
+          const id = (d.id || '').toLowerCase();
+          const tipo = (d.tipoProducto || '').toLowerCase();
+          const nombre = (d.Nombre || '').toLowerCase();
+          return nombreEmpresa.includes(q) || id.includes(q) || tipo.includes(q) || nombre.includes(q);
+        });
+
+      if (results.length === 0) {
+        const p = document.createElement('div');
+        p.textContent = "No se han encontrado productos para esa búsqueda.";
+        p.style.gridColumn = '1/-1';
+        p.style.textAlign = 'center';
+        p.style.fontSize = '1.05rem';
+        p.style.color = '#fff';
+        cardsTarget.appendChild(p);
+        return;
+      }
+
+      (async () => {
+        for (const d of results) {
+          cardsTarget.insertAdjacentHTML("beforeend", await card(d));
+        }
+      })();
+    }
+
+    async function load() {
+      isLoading = true;
+      render();
+      try {
+        const snap = await getDocs(collection(db, "Productos"));
+        productos = [];
+        snap.forEach(doc => productos.push({ id: doc.id, ...doc.data() }));
+      } catch (e) {
+        console.error("Error cargando productos:", e);
+        productos = [];
+      } finally {
+        isLoading = false;
+        render();
+      }
+    }
+
+    searchBox.addEventListener("input", render);
+    catSelect.addEventListener("change", render);
+
+    load();
+
+    // mostrar productos
+    function mostrarProductos() {
+      document.getElementById("homeView").style.display = "none";
+      document.getElementById("vistaProductos").style.display = "block";
+      window.scrollTo(0, 0);
+    }
+
+    document.getElementById("btnProductos").addEventListener("click", mostrarProductos);
+    document.getElementById("btnProductos2").addEventListener("click", mostrarProductos);
+
+    // mostrar HOME (loguito)
+    function mostrarHome() {
+      document.getElementById("vistaProductos").style.display = "none";
+      document.getElementById("homeView").style.display = "flex";
+      window.scrollTo(0, 0);
+    }
+
+    document.getElementById("btnHomeHeader").addEventListener("click", e => {
+      e.preventDefault();
+      mostrarHome();
+    });
+
+    document.getElementById("btnHomeDrawer").addEventListener("click", e => {
+      e.preventDefault();
+      mostrarHome();
+    });
+
+    const navRight = document.querySelector(".mdl-navigation.mdl-layout--large-screen-only");
+    const logo = document.querySelector(".centered-logo");
+
+    function ajustarVisibilidadNav() {
+      if (!navRight || !logo) return;
+
+      const logoRect = logo.getBoundingClientRect();
+      const navRect = navRight.getBoundingClientRect();
+
+      // Si el nav solapa con el logo o la pantalla es menor de 900px, se oculta
+      if (window.innerWidth < 900 || navRect.left < logoRect.right + 20) {
+        navRight.style.visibility = "hidden";
+      } else {
+        navRight.style.visibility = "visible";
+      }
+    }
+
+    window.addEventListener("resize", ajustarVisibilidadNav);
+    window.addEventListener("load", ajustarVisibilidadNav);
+  </script>
+
+</body>
+
 </html>
