@@ -111,3 +111,25 @@ body {
   position: relative;
   overflow: visible;
 }
+
+/* Ajuste de css para telefono */
+
+@media (max-width: 768px) {
+  .menu-text {
+    display: none !important;
+  }
+
+  #cardsContainer {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center; 
+    padding: 20px !important;
+    gap: 20px !important;
+  }
+
+  /* Opcional: forzar ancho agradable en móvil */
+  .demo-card-wide.mdl-card {
+    width: 90% !important;
+    max-width: 380px !important;
+  }
+}
