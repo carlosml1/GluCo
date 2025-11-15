@@ -16,6 +16,10 @@
   <link rel="stylesheet" href="style.css">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Librería para escanear códigos (Barcode Detector API fallback con Quagga2) -->
+  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+
 </head>
 
 <body>
@@ -26,19 +30,16 @@
     <header class="mdl-layout__header">
       <div class="mdl-layout__header-row">
 
-        <!-- Menú (a la izquierda) -->
         <span class="menu-text">Menú</span>
 
         <div class="mdl-layout-spacer"></div>
 
-        <!-- Logo centrado -->
         <a class="mdl-layout-title centered-logo" href="#top" id="btnHomeHeader">
           <img src="imagenes/botonImgTitulo.png" style="height:50px;">
         </a>
 
         <div class="mdl-layout-spacer"></div>
 
-        <!-- Navegación derecha -->
         <nav class="mdl-navigation mdl-layout--large-screen-only">
           <a class="mdl-navigation__link" href="#" id="btnProductos">Productos</a>
           <a class="mdl-navigation__link" href="#">Escaner</a>
@@ -59,8 +60,12 @@
 
     <!-- HOME -->
     <main class="mdl-layout__content" id="homeView"
-      style="display:flex; align-items:center; justify-content:center; height:100vh;">
-      <h3 style="color:white;">Bienvenido</h3>
+      style="display:flex; flex-direction:column; gap:20px; align-items:center; justify-content:center; height:100vh;">
+      <!-- BOTÓN PARA ABRIR ESCÁNER -->
+      <button id="btnOpenScanner" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
+        Escanear Código de Barras
+      </button>
+
     </main>
 
     <!-- PRODUCTOS -->
@@ -89,9 +94,29 @@
   </div>
 
 
+  <!-- MODAL ESCÁNER -->
+  <div id="scannerModal">
+    <div id="scannerBox">
+      <h4>Escaneando...</h4>
+      <video id="videoScanner" autoplay></video>
+      <button id="btnCloseScanner" class="mdl-button mdl-js-button mdl-button--raised"
+        style="margin-top:15px;">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- MODAL PRODUCTO DETECTADO -->
+  <div id="productoModal">
+    <div id="productoBox">
+      <button id="closeProducto"
+        style="float:right; background:none; border:none; color:white; font-size:20px;">✖</button>
+      <div id="productoContent"></div>
+    </div>
+  </div>
+
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyALHRvYyTQSTytCPZfbYxd8nmQn0-MGRNg",
@@ -122,6 +147,14 @@
       catSelect.appendChild(opt);
     });
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     async function card(d) {
       let bigImg = `imgProductos/${d.id}.png`;
       let emp = (d.NombreEmpresa || "").toLowerCase().trim();
@@ -130,26 +163,17 @@
       let smallImg = `imgEmpresas/${emp}.png`;
 
       return `
-    <div class="demo-card-wide mdl-card mdl-shadow--2dp"style="border-radius:14px;overflow:hidden;background:#499273">
-      <div class="mdl-card__title"
-        style="height:176px;background-image:url('${bigImg}');background-size:contain;background-position:center;background-repeat:no-repeat;margin:5px;"></div>
-      <div style="display:flex;justify-content:center;margin-top:-30px;">
-        <img src="${smallImg}" style="width:100px;height:100px;border-radius:50%;border:3px solid white;object-fit:contain;background:#924967;padding:8px;">
-      </div>
-      <div class="mdl-card__supporting-text" style="display:block;width:100%;text-align:center;background:#AA6C39">
-        <strong>${escapeHtml(d.NombreEmpresa || '')}</strong>
-        ${d.Nombre ? `<div style="font-size:0.9em;color:black;margin-top:6px;">${escapeHtml(d.Nombre)}</div>` : ``}
-        ${d.Ok ? `<div style="font-size:0.85em;color:white;margin-top:8px;">${escapeHtml(d.Ok)}</div>` : ``}
-      </div>
-    </div>`;
-    }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+      <div class="demo-card-wide mdl-card mdl-shadow--2dp" style="border-radius:14px;overflow:hidden;background:#499273">
+        <div class="mdl-card__title" style="height:176px;background-image:url('${bigImg}');background-size:contain;background-position:center;background-repeat:no-repeat;margin:5px;"></div>
+        <div style="display:flex;justify-content:center;margin-top:-30px;">
+          <img src="${smallImg}" style="width:100px;height:100px;border-radius:50%;border:3px solid white;object-fit:contain;background:#924967;padding:8px;">
+        </div>
+        <div class="mdl-card__supporting-text" style="display:block;width:100%;text-align:center;background:#AA6C39">
+          <strong>${escapeHtml(d.NombreEmpresa || '')}</strong>
+          ${d.Nombre ? `<div style="font-size:0.9em;color:black;margin-top:6px;">${escapeHtml(d.Nombre)}</div>` : ``}
+          ${d.Ok ? `<div style="font-size:0.85em;color:white;margin-top:8px;">${escapeHtml(d.Ok)}</div>` : ``}
+        </div>
+      </div>`;
     }
 
     function render() {
@@ -161,10 +185,7 @@
       if (isLoading) {
         const p = document.createElement('div');
         p.textContent = "Cargando productos...";
-        p.style.gridColumn = '1/-1';
-        p.style.textAlign = 'center';
-        p.style.fontSize = '1.1rem';
-        p.style.color = '#fff';
+        p.style.gridColumn = '1/-1'; p.style.textAlign = 'center'; p.style.color = '#fff';
         cardsTarget.appendChild(p);
         return;
       }
@@ -172,10 +193,7 @@
       if (productos.length === 0) {
         const p = document.createElement('div');
         p.textContent = "No hay productos disponibles.";
-        p.style.gridColumn = '1/-1';
-        p.style.textAlign = 'center';
-        p.style.fontSize = '1.1rem';
-        p.style.color = '#fff';
+        p.style.gridColumn = '1/-1'; p.style.textAlign = 'center'; p.style.color = '#fff';
         cardsTarget.appendChild(p);
         return;
       }
@@ -194,10 +212,7 @@
       if (results.length === 0) {
         const p = document.createElement('div');
         p.textContent = "No se han encontrado productos para esa búsqueda.";
-        p.style.gridColumn = '1/-1';
-        p.style.textAlign = 'center';
-        p.style.fontSize = '1.05rem';
-        p.style.color = '#fff';
+        p.style.gridColumn = '1/-1'; p.style.textAlign = 'center'; p.style.color = '#fff';
         cardsTarget.appendChild(p);
         return;
       }
@@ -238,9 +253,9 @@
     }
 
     document.getElementById("btnProductos").addEventListener("click", mostrarProductos);
+    document.getElementById("btnRecientes2");
     document.getElementById("btnProductos2").addEventListener("click", mostrarProductos);
 
-    // mostrar HOME (loguito)
     function mostrarHome() {
       document.getElementById("vistaProductos").style.display = "none";
       document.getElementById("homeView").style.display = "flex";
@@ -248,34 +263,88 @@
     }
 
     document.getElementById("btnHomeHeader").addEventListener("click", e => {
-      e.preventDefault();
-      mostrarHome();
+      e.preventDefault(); mostrarHome();
     });
 
-    document.getElementById("btnHomeDrawer").addEventListener("click", e => {
-      e.preventDefault();
-      mostrarHome();
+
+    // ---------- ESCÁNER ----------
+    const scannerModal = document.getElementById("scannerModal");
+    const btnOpenScanner = document.getElementById("btnOpenScanner");
+    const btnCloseScanner = document.getElementById("btnCloseScanner");
+    const videoScanner = document.getElementById("videoScanner");
+
+    let scanning = false;
+
+    btnOpenScanner.addEventListener("click", () => {
+      scannerModal.style.display = "flex";
+      startScanner();
     });
 
-    const navRight = document.querySelector(".mdl-navigation.mdl-layout--large-screen-only");
-    const logo = document.querySelector(".centered-logo");
+    btnCloseScanner.addEventListener("click", () => stopScanner());
 
-    function ajustarVisibilidadNav() {
-      if (!navRight || !logo) return;
+    function startScanner() {
+      scanning = true;
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: videoScanner,
+        },
+        decoder: {
+          readers: ["ean_reader", "ean_8_reader", "code128_reader"]
+        }
+      }, function (err) {
+        if (err) { console.error(err); return; }
+        Quagga.start();
+      });
 
-      const logoRect = logo.getBoundingClientRect();
-      const navRect = navRight.getBoundingClientRect();
+      Quagga.onDetected(async (result) => {
+        if (!scanning) return;
+        scanning = false;
+        stopScanner();
+        const code = result.codeResult.code;
+        buscarProducto(code);
+      });
+    }
 
-      // Si el nav solapa con el logo o la pantalla es menor de 900px, se oculta
-      if (window.innerWidth < 900 || navRect.left < logoRect.right + 20) {
-        navRight.style.visibility = "hidden";
-      } else {
-        navRight.style.visibility = "visible";
+    function stopScanner() {
+      scannerModal.style.display = "none";
+      scanning = false;
+      try { Quagga.stop(); } catch (e) { }
+    }
+
+    // ---------- MOSTRAR PRODUCTO DETECTADO ----------
+    const productoModal = document.getElementById("productoModal");
+    const productoContent = document.getElementById("productoContent");
+    document.getElementById("closeProducto").addEventListener("click", () => {
+      productoModal.style.display = "none";
+    });
+
+    async function buscarProducto(id) {
+      try {
+        const ref = doc(db, "Productos", id);
+        const found = await getDoc(ref);
+
+        if (!found.exists()) {
+          productoContent.innerHTML = `<h3>No encontrado</h3><p>El código ${id} no está registrado.</p>`;
+          productoModal.style.display = "flex";
+          return;
+        }
+
+        const d = found.data();
+        d.id = id;
+
+        const html = await card(d);
+        productoContent.innerHTML = html;
+        productoModal.style.display = "flex";
+
+      } catch (e) {
+        productoContent.innerHTML = `<h3>Error</h3><p>No se pudo buscar el producto.</p>`;
+        productoModal.style.display = "flex";
       }
     }
 
-    window.addEventListener("resize", ajustarVisibilidadNav);
-    window.addEventListener("load", ajustarVisibilidadNav);
+
   </script>
 
 </body>
