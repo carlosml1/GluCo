@@ -16,10 +16,6 @@
   <link rel="stylesheet" href="style.css">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Librería para escanear códigos (Barcode Detector API fallback con Quagga2) -->
-  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
-
 </head>
 
 <body>
@@ -29,8 +25,6 @@
     <!-- HEADER -->
     <header class="mdl-layout__header">
       <div class="mdl-layout__header-row">
-
-        <span class="menu-text">Menú</span>
 
         <div class="mdl-layout-spacer"></div>
 
@@ -61,11 +55,10 @@
     <!-- HOME -->
     <main class="mdl-layout__content" id="homeView"
       style="display:flex; flex-direction:column; gap:20px; align-items:center; justify-content:center; height:100vh;">
-      <!-- BOTÓN PARA ABRIR ESCÁNER -->
+      <!-- BOTÓN PARA ABRIR ESCÁNER (visible solo en móvil gracias al CSS externo) -->
       <button id="btnOpenScanner" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
         Escanear Código de Barras
       </button>
-
     </main>
 
     <!-- PRODUCTOS -->
@@ -93,14 +86,12 @@
 
   </div>
 
-
   <!-- MODAL ESCÁNER -->
   <div id="scannerModal">
     <div id="scannerBox">
       <h4>Escaneando...</h4>
       <video id="videoScanner" autoplay></video>
-      <button id="btnCloseScanner" class="mdl-button mdl-js-button mdl-button--raised"
-        style="margin-top:15px;">Cerrar</button>
+      <button id="btnCloseScanner" class="mdl-button mdl-js-button mdl-button--raised">Cerrar</button>
     </div>
   </div>
 
@@ -113,7 +104,7 @@
     </div>
   </div>
 
-
+  <!-- SCRIPT PRINCIPAL -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
@@ -253,7 +244,6 @@
     }
 
     document.getElementById("btnProductos").addEventListener("click", mostrarProductos);
-    document.getElementById("btnRecientes2");
     document.getElementById("btnProductos2").addEventListener("click", mostrarProductos);
 
     function mostrarHome() {
@@ -266,71 +256,78 @@
       e.preventDefault(); mostrarHome();
     });
 
+    // ---------- ESCÁNER MODERNO (BarcodeDetector) ----------
+    let scanning = false;
+    let stream = any;
 
-    // ---------- ESCÁNER ----------
     const scannerModal = document.getElementById("scannerModal");
     const btnOpenScanner = document.getElementById("btnOpenScanner");
     const btnCloseScanner = document.getElementById("btnCloseScanner");
     const videoScanner = document.getElementById("videoScanner");
 
-    let scanning = false;
-
-    btnOpenScanner.addEventListener("click", () => {
+    btnOpenScanner.addEventListener("click", async () => {
       scannerModal.style.display = "flex";
+      await new Promise(r => setTimeout(r, 300));
       startScanner();
     });
 
     btnCloseScanner.addEventListener("click", () => stopScanner());
 
-    function startScanner() {
-
+    async function startScanner() {
       scanning = true;
 
-      // Esperar a que el modal sea visible en pantalla (Android lo necesita)
-      setTimeout(() => {
-        Quagga.init({
-          inputStream: {
-            name: "Live",
-            type: "LiveStream",
-            target: videoScanner,
-            constraints: {
-              facingMode: "environment",   // usa cámara trasera
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
-            }
-          },
-          locator: {
-            patchSize: "medium",
-            halfSample: true
-          },
-          decoder: {
-            readers: ["ean_reader", "ean_8_reader", "code128_reader"]
-          },
-          locate: true
-        }, function (err) {
-          if (err) {
-            console.error("Error:", err);
-            alert("No se pudo acceder a la cámara. ¿Permitiste el acceso?");
+      if (!("BarcodeDetector" in window)) {
+        alert("Tu navegador no soporta BarcodeDetector. Usa Chrome/Edge/Firefox en móvil.");
+        scannerModal.style.display = "none";
+        return;
+      }
+
+      let detector;
+      try {
+        detector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "code_128"] });
+      } catch {
+        detector = new BarcodeDetector();
+      }
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+          audio: false
+        });
+        videoScanner.srcObject = stream;
+        await videoScanner.play();
+      } catch (error) {
+        alert("No se pudo acceder a la cámara. Revisa permisos.");
+        scannerModal.style.display = "none";
+        return;
+      }
+
+      const loop = async () => {
+        if (!scanning) return;
+        try {
+          const codes = await detector.detect(videoScanner);
+          if (codes.length > 0) {
+            const code = codes[0].rawValue;
+            scanning = false;
+            stopScanner();
+            buscarProducto(code);
             return;
           }
-          Quagga.start();
-        });
+        } catch {}
+        requestAnimationFrame(loop);
+      };
 
-        Quagga.onDetected(async (result) => {
-          if (!scanning) return;
-          scanning = false;
-          stopScanner();
-          const code = result.codeResult.code;
-          buscarProducto(code);
-        });
-
-      }, 300); // NECESARIO: evita pantalla negra en Android
+      requestAnimationFrame(loop);
     }
 
     function stopScanner() {
-      scannerModal.style.display = "none";
       scanning = false;
-      try { Quagga.stop(); } catch (e) { }
+      scannerModal.style.display = "none";
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      videoScanner.srcObject = null;
     }
 
     // ---------- MOSTRAR PRODUCTO DETECTADO ----------
@@ -363,7 +360,6 @@
         productoModal.style.display = "flex";
       }
     }
-
 
   </script>
 
