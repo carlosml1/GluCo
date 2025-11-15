@@ -192,3 +192,9 @@ body {
     transform: translateX(-50%);
   }
 }
+
+@media (min-width: 1024px) {
+  #btnOpenScanner {
+    display: none !important;
+  }
+}

@@ -283,28 +283,48 @@
     btnCloseScanner.addEventListener("click", () => stopScanner());
 
     function startScanner() {
-      scanning = true;
-      Quagga.init({
-        inputStream: {
-          name: "Live",
-          type: "LiveStream",
-          target: videoScanner,
-        },
-        decoder: {
-          readers: ["ean_reader", "ean_8_reader", "code128_reader"]
-        }
-      }, function (err) {
-        if (err) { console.error(err); return; }
-        Quagga.start();
-      });
 
-      Quagga.onDetected(async (result) => {
-        if (!scanning) return;
-        scanning = false;
-        stopScanner();
-        const code = result.codeResult.code;
-        buscarProducto(code);
-      });
+      scanning = true;
+
+      // Esperar a que el modal sea visible en pantalla (Android lo necesita)
+      setTimeout(() => {
+        Quagga.init({
+          inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: videoScanner,
+            constraints: {
+              facingMode: "environment",   // usa cámara trasera
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          },
+          locator: {
+            patchSize: "medium",
+            halfSample: true
+          },
+          decoder: {
+            readers: ["ean_reader", "ean_8_reader", "code128_reader"]
+          },
+          locate: true
+        }, function (err) {
+          if (err) {
+            console.error("Error:", err);
+            alert("No se pudo acceder a la cámara. ¿Permitiste el acceso?");
+            return;
+          }
+          Quagga.start();
+        });
+
+        Quagga.onDetected(async (result) => {
+          if (!scanning) return;
+          scanning = false;
+          stopScanner();
+          const code = result.codeResult.code;
+          buscarProducto(code);
+        });
+
+      }, 300); // NECESARIO: evita pantalla negra en Android
     }
 
     function stopScanner() {
