@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="imagenes/logoWeb.png">
   <link rel="shortcut icon" type="image/png" href="imagenes/logoWeb.png">
   <link rel="apple-touch-icon" href="imagenes/logoWeb.png">
-
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-orange.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
@@ -34,31 +34,58 @@
 
         <div class="mdl-layout-spacer"></div>
 
-        <nav class="mdl-navigation mdl-layout--large-screen-only">
-          <a class="mdl-navigation__link" href="#" id="btnProductos">Productos</a>
-          <a class="mdl-navigation__link" href="#">Escaner</a>
-          <a class="mdl-navigation__link" href="#">Tablon</a>
-        </nav>
+        <!-- Profile circle -->
+        <div id="headerControls" style="display:flex;align-items:center;">
+          <div id="profileCircle" title="Perfil" style="display:none; cursor:pointer;">
+            <span id="profileInitials" style="font-weight:700;color:#333"></span>
+          </div>
+        </div>
+
       </div>
     </header>
 
-    <!-- DRAWER -->
-    <div class="mdl-layout__drawer">
-      <span class="mdl-layout-title">Menú</span>
-      <nav class="mdl-navigation">
-        <a class="mdl-navigation__link" href="#" id="btnProductos2">Productos</a>
-        <a class="mdl-navigation__link" href="#">Escaner</a>
-        <a class="mdl-navigation__link" href="#">Tablon</a>
-      </nav>
+    <!-- SELECTOR DE PANTALLAS -->
+    <div id="selectorPantallas">
+      <button id="btnLeft" class="selector-arrow">🡸</button>
+      <span id="selectorLabel">Principal</span>
+      <button id="btnRight" class="selector-arrow">🡺</button>
     </div>
 
     <!-- HOME -->
-    <main class="mdl-layout__content" id="homeView"
-      style="display:flex; flex-direction:column; gap:20px; align-items:center; justify-content:center; height:100vh;">
-      <!-- BOTÓN PARA ABRIR ESCÁNER (visible solo en móvil gracias al CSS externo) -->
+    <main class="mdl-layout__content" id="homeView">
       <button id="btnOpenScanner" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
         Escanear Código de Barras
       </button>
+
+      <!-- --- TABLÓN / TIMELINE: agregado debajo del botón --- -->
+      <div id="timeline">
+        <!-- Area de composición -->
+        <div class="post-box" id="composeBox">
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <div id="composeAvatar" class="avatar-sm">?</div>
+            <div style="flex:1; position:relative;">
+              <textarea id="composeText" placeholder="¿Qué estás pensando?" maxlength="1000" disabled></textarea>
+
+              <div id="composeActions" style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="font-size:0.85em;color:#666;">Máx. 1000 caracteres</div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <button id="btnOpenAuthFromCompose" class="mdl-button mdl-js-button mdl-button--primary"
+                    style="display:none;">Iniciar sesión</button>
+                  <button id="btnPost" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                    disabled>Publicar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contenedor de posts -->
+        <div id="postsContainer">
+          <div style="text-align:center;color:#666;">Cargando posts...</div>
+        </div>
+      </div>
+      <!-- --- fin tablón --- -->
+
     </main>
 
     <!-- PRODUCTOS -->
@@ -77,9 +104,7 @@
           </div>
         </div>
 
-        <div id="cardsContainer"
-          style="padding:30px; display:grid; grid-template-columns:repeat(auto-fill,minmax(380px,1fr)); gap:30px;">
-        </div>
+        <div id="cardsContainer"></div>
 
       </div>
     </main>
@@ -104,10 +129,59 @@
     </div>
   </div>
 
+  <!-- AUTH MODAL -->
+  <div id="authModal">
+    <div id="authBox">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 id="authTitle">Iniciar sesión</h3>
+        <button id="closeAuth" style="background:none;border:none;font-size:18px;cursor:pointer">✖</button>
+      </div>
+
+      <div class="tabSwitch">
+        <button id="tabLogin" class="mdl-button mdl-js-button mdl-button--raised">Login</button>
+        <button id="tabRegister" class="mdl-button mdl-js-button">Registrar</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <input class="auth-field mdl-textfield__input" type="text" id="loginEmail"
+          placeholder="Correo o nombre de usuario">
+        <input class="auth-field mdl-textfield__input" type="password" id="loginPass" placeholder="Contraseña">
+        <button id="btnForgotPassword" class="mdl-button mdl-js-button mdl-button--accent" style="margin-top:10px;">¿Has
+          olvidado tu contraseña?</button>
+        <div class="auth-actions">
+          <button id="doLogin" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised">Entrar</button>
+        </div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="registerForm" style="display:none">
+        <input class="auth-field mdl-textfield__input" type="email" id="regEmail" placeholder="Correo electrónico">
+        <input class="auth-field mdl-textfield__input" type="text" id="regUsername" placeholder="Nombre de usuario">
+        <input class="auth-field mdl-textfield__input" type="password" id="regPass1" placeholder="Contraseña">
+        <input class="auth-field mdl-textfield__input" type="password" id="regPass2" placeholder="Repetir contraseña">
+        <div class="auth-actions">
+          <button id="doRegister"
+            class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised">Registrar</button>
+        </div>
+      </div>
+
+      <div id="authMsg" style="margin-top:8px;color:#a33"></div>
+    </div>
+  </div>
+
+  <!-- Blocking overlay when not logged -->
+  <div id="mustLoginOverlay">Por favor, inicia sesión para continuar.</div>
+
   <!-- SCRIPT PRINCIPAL -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+    import {
+      getFirestore, collection, getDocs, doc, getDoc, setDoc,
+      addDoc, serverTimestamp, onSnapshot, query, orderBy, deleteDoc
+    } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
 
     const firebaseConfig = {
       apiKey: "AIzaSyALHRvYyTQSTytCPZfbYxd8nmQn0-MGRNg",
@@ -121,6 +195,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
     const CATS = ["Pan", "Snack", "Bebida", "Pasta", "Pizza", "Dulce", "Cereales", "Pastel", "Reposteria", "Congelado", "Helado", "Cerveza", "Batido", "Embutido", "Salsa"];
 
@@ -149,7 +224,7 @@
     async function card(d) {
       let bigImg = `imgProductos/${d.id}.png`;
       let emp = (d.NombreEmpresa || "").toLowerCase().trim();
-      emp = emp.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      emp = emp.normalize("NFD").replace(/[̀-ͯ]/g, "");
       emp = emp.replace(/[^a-z0-9]/g, "");
       let smallImg = `imgEmpresas/${emp}.png`;
 
@@ -233,18 +308,14 @@
 
     searchBox.addEventListener("input", render);
     catSelect.addEventListener("change", render);
-
     load();
 
-    // mostrar productos
+    // --- VISTAS ---
     function mostrarProductos() {
       document.getElementById("homeView").style.display = "none";
       document.getElementById("vistaProductos").style.display = "block";
       window.scrollTo(0, 0);
     }
-
-    document.getElementById("btnProductos").addEventListener("click", mostrarProductos);
-    document.getElementById("btnProductos2").addEventListener("click", mostrarProductos);
 
     function mostrarHome() {
       document.getElementById("vistaProductos").style.display = "none";
@@ -253,13 +324,35 @@
     }
 
     document.getElementById("btnHomeHeader").addEventListener("click", e => {
-      e.preventDefault(); mostrarHome();
+      e.preventDefault();
+      vistaActual = "principal";
+      selectorLabel.textContent = "Principal";
+      mostrarHome();
     });
 
-    // ---------- ESCÁNER MODERNO (BarcodeDetector) ----------
+    const selectorLabel = document.getElementById("selectorLabel");
+    const btnLeft = document.getElementById("btnLeft");
+    const btnRight = document.getElementById("btnRight");
+    let vistaActual = "principal";
+
+    function cambiarVista() {
+      if (vistaActual === "principal") {
+        mostrarProductos();
+        vistaActual = "productos";
+        selectorLabel.textContent = "Productos";
+      } else {
+        mostrarHome();
+        vistaActual = "principal";
+        selectorLabel.textContent = "Principal";
+      }
+    }
+
+    btnLeft.addEventListener("click", cambiarVista);
+    btnRight.addEventListener("click", cambiarVista);
+
+    // --- ESCÁNER ---
     let scanning = false;
     let stream = null;
-
     const scannerModal = document.getElementById("scannerModal");
     const btnOpenScanner = document.getElementById("btnOpenScanner");
     const btnCloseScanner = document.getElementById("btnCloseScanner");
@@ -277,7 +370,7 @@
       scanning = true;
 
       if (!("BarcodeDetector" in window)) {
-        alert("Tu navegador no soporta BarcodeDetector. Usa Chrome/Edge/Firefox en móvil.");
+        alert("Tu navegador no soporta BarcodeDetector.");
         scannerModal.style.display = "none";
         return;
       }
@@ -290,14 +383,11 @@
       }
 
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-          audio: false
-        });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
         videoScanner.srcObject = stream;
         await videoScanner.play();
       } catch (error) {
-        alert("No se pudo acceder a la cámara. Revisa permisos.");
+        alert("No se pudo acceder a la cámara.");
         scannerModal.style.display = "none";
         return;
       }
@@ -313,7 +403,7 @@
             buscarProducto(code);
             return;
           }
-        } catch {}
+        } catch { }
         requestAnimationFrame(loop);
       };
 
@@ -330,9 +420,10 @@
       videoScanner.srcObject = null;
     }
 
-    // ---------- MOSTRAR PRODUCTO DETECTADO ----------
+    // --- MOSTRAR PRODUCTO ---
     const productoModal = document.getElementById("productoModal");
     const productoContent = document.getElementById("productoContent");
+
     document.getElementById("closeProducto").addEventListener("click", () => {
       productoModal.style.display = "none";
     });
@@ -360,6 +451,418 @@
         productoModal.style.display = "flex";
       }
     }
+
+    // --- AUTH & PROFILE ---
+    const authModal = document.getElementById('authModal');
+    const closeAuth = document.getElementById('closeAuth');
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const authTitle = document.getElementById('authTitle');
+    const authMsg = document.getElementById('authMsg');
+    const profileCircle = document.getElementById('profileCircle');
+    const profileInitials = document.getElementById('profileInitials');
+    const mustLoginOverlay = document.getElementById('mustLoginOverlay');
+
+    function openAuth(defaultTab = 'login') {
+      authMsg.textContent = '';
+      authModal.style.display = 'flex';
+      if (defaultTab === 'login') showLogin(); else showRegister();
+    }
+    function closeAuthModal() { authModal.style.display = 'none'; }
+
+    closeAuth.addEventListener('click', closeAuthModal);
+    tabLogin.addEventListener('click', showLogin);
+    tabRegister.addEventListener('click', showRegister);
+
+    function showLogin() { tabLogin.classList.add('mdl-button--raised'); tabRegister.classList.remove('mdl-button--raised'); loginForm.style.display = 'block'; registerForm.style.display = 'none'; authTitle.textContent = 'Iniciar sesión'; }
+    function showRegister() { tabRegister.classList.add('mdl-button--raised'); tabLogin.classList.remove('mdl-button--raised'); loginForm.style.display = 'none'; registerForm.style.display = 'block'; authTitle.textContent = 'Registrar usuario'; }
+
+    // --- REGISTER ---
+    async function registerUser() {
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
+      const nombre = document.getElementById('regUsername').value.trim();
+      const p1 = document.getElementById('regPass1').value;
+      const p2 = document.getElementById('regPass2').value;
+
+      if (!email || !nombre || !p1 || !p2) { authMsg.textContent = 'Rellena todos los campos.'; return; }
+      if (p1 !== p2) { authMsg.textContent = 'Las contraseñas no coinciden.'; return; }
+
+      try {
+        // Crear usuario en Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, email, p1);
+        // Guardar datos extra en Firestore
+        await setDoc(doc(db, 'Usuarios', email), { nombreUsuario: nombre, rango: 'usuario' });
+        localStorage.setItem('gluco_currentUser', email);
+        closeAuthModal();
+        updateUIForUser(email, nombre);
+      } catch (e) { console.error(e); authMsg.textContent = 'Error al registrar. ' + (e.message || ''); }
+    }
+
+    // --- LOGIN ---
+    async function loginUser() {
+      const idOrEmail = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPass').value;
+      if (!idOrEmail || !pass) { authMsg.textContent = 'Rellena todos los campos.'; return; }
+
+      try {
+        let email = idOrEmail;
+
+        try {
+          // intentamos login por email
+          await signInWithEmailAndPassword(auth, email, pass);
+        } catch (err) {
+          // si falla, buscamos por nombreUsuario en Firestore
+          const usersSnap = await getDocs(collection(db, 'Usuarios'));
+          let found = null;
+          usersSnap.forEach(d => { if (d.data().nombreUsuario === idOrEmail) found = { id: d.id, ...d.data() }; });
+          if (!found) { authMsg.textContent = 'Usuario no encontrado.'; return; }
+          email = found.id;
+          await signInWithEmailAndPassword(auth, email, pass);
+        }
+
+        localStorage.setItem('gluco_currentUser', email);
+        closeAuthModal();
+        updateUIForUser(email, idOrEmail);
+      } catch (e) { console.error(e); authMsg.textContent = 'Error al iniciar sesión. ' + (e.message || ''); }
+    }
+
+    document.getElementById('doRegister').addEventListener('click', registerUser);
+    document.getElementById('doLogin').addEventListener('click', loginUser);
+
+    // --- PASSWORD RESET ---
+    document.getElementById('btnForgotPassword').addEventListener('click', async () => {
+      const email = document.getElementById('loginEmail').value.trim();
+      if (!email) { authMsg.textContent = 'Introduce tu correo para recuperar la contraseña.'; return; }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        authMsg.style.color = 'green';
+        authMsg.textContent = 'Correo de recuperación enviado.';
+      } catch (e) { authMsg.style.color = '#a33'; authMsg.textContent = 'Error al enviar correo: ' + (e.message || ''); }
+    });
+
+    // --- PROFILE & SESSION ---
+    profileCircle.addEventListener('click', () => {
+      const cur = localStorage.getItem('gluco_currentUser');
+      if (!cur) { openAuth('login'); return; }
+      if (confirm('¿Cerrar sesión?')) {
+        localStorage.removeItem('gluco_currentUser');
+        auth.signOut();
+        updateUIForUser(null);
+      }
+    });
+
+    // --- NUEVO: TIMELINE / POSTS ---
+    const composeText = document.getElementById('composeText');
+    const btnPost = document.getElementById('btnPost');
+    const postsContainer = document.getElementById('postsContainer');
+    const composeAvatar = document.getElementById('composeAvatar');
+    const btnOpenAuthFromCompose = document.getElementById('btnOpenAuthFromCompose');
+
+    // Icon mapping según rango
+    function rankIcon(rango) {
+      if (!rango) return '';
+
+      const r = rango.toLowerCase();
+
+      const iconMap = {
+        'staff': '<img src="imgRangos/staff.png" class="rank-img">',
+        'empresa': '<img src="imgRangos/empresa.png" class="rank-img">',
+        'premium': '<img src="imgRangos/premium.png" class="rank-img">',
+        'verificado': '<img src="imgRangos/verificado.png" class="rank-img">'
+      };
+
+      return iconMap[r] || ''; // si no existe, sin icono
+    }
+
+    // Obtener datos de usuario activo
+    async function getCurrentUserData() {
+      const cur = localStorage.getItem('gluco_currentUser');
+      if (!cur) return null;
+      try {
+        const snap = await getDoc(doc(db, 'Usuarios', cur));
+        if (!snap.exists()) return { email: cur, nombreUsuario: cur, rango: 'usuario' };
+        const data = snap.data();
+        return { email: cur, nombreUsuario: data.nombreUsuario, rango: data.rango || 'usuario' };
+      } catch (e) {
+        console.error('Error user data', e);
+        return { email: cur, nombreUsuario: cur, rango: 'usuario' };
+      }
+    }
+
+    // Actualiza la UI del header y del compose dependiendo del usuario
+    async function updateUIForUser(email, displayName) {
+      if (email) {
+        profileCircle.style.display = 'flex';
+        const initials = (displayName || email).split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+        profileInitials.textContent = initials;
+        mustLoginOverlay.style.display = 'none';
+
+        composeText.disabled = false;
+        btnPost.disabled = false;
+        btnOpenAuthFromCompose.style.display = 'none';
+
+        const ud = await getCurrentUserData();
+        const name = ud && ud.nombreUsuario ? ud.nombreUsuario : displayName || email;
+        composeAvatar.textContent = (name || email).split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+
+      } else {
+        profileCircle.style.display = 'none';
+        mustLoginOverlay.style.display = 'flex';
+
+        composeText.disabled = true;
+        btnPost.disabled = true;
+        btnOpenAuthFromCompose.style.display = 'inline-block';
+        composeAvatar.textContent = '?';
+      }
+
+      // ⚡ Refrescar posts automáticamente
+      const snap = await getDocs(query(collection(db, 'Posts'), orderBy('fecha', 'desc')));
+      const items = [];
+      snap.forEach(d => {
+        const data = d.data();
+        let fechaVal = null;
+        try {
+          fechaVal = data.fecha && data.fecha.toDate ? data.fecha.toDate().getTime() : (data.fecha ? new Date(data.fecha).getTime() : null);
+        } catch { fechaVal = null; }
+        items.push({
+          id: d.id,
+          autorEmail: data.autorEmail,
+          autorNombre: data.autorNombre,
+          autorRango: data.autorRango,
+          mensaje: data.mensaje,
+          fecha: fechaVal
+        });
+      });
+      renderPostsList(items);
+    }
+
+    (async () => {
+      const cur = localStorage.getItem('gluco_currentUser');
+      if (cur) {
+        try {
+          const snap = await getDoc(doc(db, 'Usuarios', cur));
+          if (snap.exists()) updateUIForUser(cur, snap.data().nombreUsuario || cur);
+          else updateUIForUser(null);
+        } catch (e) { console.error(e); updateUIForUser(null); }
+      } else updateUIForUser(null);
+      mustLoginOverlay.style.display = localStorage.getItem('gluco_currentUser') ? 'none' : 'flex';
+      profileCircle.style.display = 'flex';
+    })();
+
+    btnOpenAuthFromCompose.addEventListener('click', () => openAuth('login'));
+
+    // Publicar post
+    btnPost.addEventListener('click', async () => {
+      const text = (composeText.value || '').trim();
+      if (!text) return;
+      const cur = localStorage.getItem('gluco_currentUser');
+      if (!cur) { openAuth('login'); return; }
+
+      try {
+        // Obtener nombre y rango actuales
+        const ud = await getCurrentUserData();
+        const nombre = ud && ud.nombreUsuario ? ud.nombreUsuario : cur;
+        const rango = ud && ud.rango ? ud.rango : 'usuario';
+
+        await addDoc(collection(db, 'Posts'), {
+          autorEmail: cur,
+          autorUID: auth.currentUser.uid,
+          autorNombre: nombre,
+          autorRango: rango,
+          mensaje: text,
+          fecha: serverTimestamp()
+        });
+
+        composeText.value = '';
+      } catch (e) {
+        console.error('Error al publicar post', e);
+        alert('No se pudo publicar el post.');
+      }
+    });
+
+    const staffAlertsContainer = document.createElement('div');
+    staffAlertsContainer.id = 'staffAlertsContainer';
+    staffAlertsContainer.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+  `;
+    document.body.appendChild(staffAlertsContainer);
+
+
+    function esMalicioso(texto) {
+      if (!texto) return false;
+      const patrones = [
+        /<script/i,
+        /onerror=/i,
+        /onload=/i,
+        /<iframe/i,
+        /<img/i,
+        /javascript:/i
+      ];
+      return patrones.some(p => p.test(texto));
+    }
+
+
+    function mostrarAlertaStaff(usuario, mensaje) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+    background: #333;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    max-width: 250px;
+    font-size: 0.9em;
+  `;
+      toast.textContent = `Contenido sospechoso de ${usuario}`;
+
+      toast.addEventListener('click', () => {
+        alert(`Usuario: ${usuario}\nContenido sospechoso:\n${mensaje}`);
+      });
+
+      staffAlertsContainer.appendChild(toast);
+
+      setTimeout(() => {
+        staffAlertsContainer.removeChild(toast);
+      }, 8000);
+    }
+
+    // Render posts (simple, seguro y escapando HTML)
+    // Render posts (seguro y escapando HTML)
+    async function renderPostsList(items) {
+      if (!items.length) {
+        postsContainer.innerHTML = '<div style="text-align:center;color:#666;">No hay posts aún. Sé el primero.</div>';
+        return;
+      }
+
+      postsContainer.innerHTML = '';
+      const curUserEmail = localStorage.getItem('gluco_currentUser');
+      const curUserData = await getCurrentUserData();
+      const isStaff = curUserData && curUserData.rango === 'staff';
+
+      for (const p of items) {
+        // --- Detectar contenido malicioso ---
+        if (esMalicioso(p.mensaje || '')) {
+          // Mostrar toast solo al staff
+          if (isStaff) {
+            mostrarAlertaStaff(p.autorNombre || p.autorEmail, p.mensaje);
+          }
+
+          // Borrar automáticamente el post malicioso
+          try {
+            await deleteDoc(doc(db, 'Posts', p.id));
+            continue; // Saltar renderizado de este post
+          } catch (e) {
+            console.error('Error borrando post malicioso', e);
+          }
+        }
+
+        const fechaTxt = p.fecha ? new Date(p.fecha).toLocaleString() : '';
+        const nombreEsc = escapeHtml(p.autorNombre || p.autorEmail || 'Usuario');
+        const mensajeEsc = escapeHtml(p.mensaje || '');
+        const initials = (p.autorNombre || p.autorEmail || '').split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase() || '?';
+        const icon = rankIcon(p.autorRango);
+
+        const html = `
+      <div class="post-box post-item" style="position:relative;">
+        <div class="avatar-sm">${initials}</div>
+        <div style="flex:1;">
+          <div class="post-meta">
+            <strong>${nombreEsc}</strong>
+            ${icon ? `<span class="rank-icon" title="${escapeHtml(p.autorRango || '')}">${icon}</span>` : ''}
+            <span style="color:#888;font-size:0.85em;margin-left:8px;">${fechaTxt}</span>
+          </div>
+          <div class="post-text">${mensajeEsc}</div>
+        </div>
+        <button class="deletePostBtn" style="
+          position:absolute;
+          bottom:8px;
+          right:8px;
+          background:none;
+          border:none;
+          cursor:pointer;
+          font-size:18px;
+          color:#a33;
+        ">🗑️</button>
+      </div>
+    `;
+        postsContainer.insertAdjacentHTML('beforeend', html);
+
+        const postEl = postsContainer.lastElementChild;
+        const deleteBtn = postEl.querySelector('.deletePostBtn');
+
+        deleteBtn.style.display = 'none';
+        if (curUserEmail === p.autorEmail || isStaff) deleteBtn.style.display = 'block';
+
+        deleteBtn.addEventListener('click', async () => {
+          if (!confirm('¿Seguro que quieres borrar este post?')) return;
+          try {
+            await deleteDoc(doc(db, 'Posts', p.id));
+          } catch (e) {
+            console.error('Error borrando post', e);
+            alert('No se pudo borrar el post.');
+          }
+        });
+      }
+    }
+
+
+
+    // Escuchar posts en tiempo real (más recientes primero)
+    (function listenPostsRealtime() {
+      try {
+        const q = query(collection(db, 'Posts'), orderBy('fecha', 'desc'));
+        onSnapshot(q, snap => {
+          const items = [];
+          snap.forEach(d => {
+            const data = d.data();
+            // Manejo: si fecha es Timestamp, convertir a ms
+            let fechaVal = null;
+            try {
+              fechaVal = data.fecha && data.fecha.toDate ? data.fecha.toDate().getTime() : (data.fecha ? new Date(data.fecha).getTime() : null);
+            } catch { fechaVal = null; }
+            items.push({
+              id: d.id,
+              autorEmail: data.autorEmail,
+              autorNombre: data.autorNombre,
+              autorRango: data.autorRango,
+              mensaje: data.mensaje,
+              fecha: fechaVal
+            });
+          });
+          renderPostsList(items);
+        }, err => {
+          console.error('Error escuchando posts', err);
+          postsContainer.innerHTML = '<div style="text-align:center;color:#a33;">Error cargando posts.</div>';
+        });
+      } catch (e) {
+        console.error('listenPostsRealtime error', e);
+        postsContainer.innerHTML = '<div style="text-align:center;color:#a33;">No se pudieron cargar posts.</div>';
+      }
+    })();
+
+    // --- PROFILE UPDATE botón cerrar sesión ya definido antes ---
+
+    // Para seguridad UX: si localStorage cambia (otra pestaña), actualizar UI
+    window.addEventListener('storage', async (e) => {
+      if (e.key === 'gluco_currentUser') {
+        const cur = localStorage.getItem('gluco_currentUser');
+        if (cur) {
+          const snap = await getDoc(doc(db, 'Usuarios', cur));
+          updateUIForUser(cur, snap.exists() ? snap.data().nombreUsuario : cur);
+        } else updateUIForUser(null);
+      }
+    });
+
+    mustLoginOverlay.addEventListener('click', () => openAuth('login'));
 
   </script>
 

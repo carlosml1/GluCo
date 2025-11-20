@@ -1,52 +1,246 @@
-/* Estilo fondo del navegador superior */
+body {
+    font-family: "Roboto", sans-serif !important;
+}
+
+
+/* ---------------- HEADER ---------------- */
+
 .mdl-layout__header,
 .mdl-layout__header .mdl-layout__header-row {
   background-color: #924967 !important;
 }
 
-/* Estilo letras del navegador */
-.mdl-layout-title,
-.mdl-navigation__link {
-  color: white !important;
-  font-size: 26px;
-}
-
-/* Estilo fondo del drawer */
 .mdl-layout__drawer {
   background-color: #924967 !important;
 }
 
-/* Estilo fondo hover de los items de navegación */
-.mdl-navigation__link:hover {
-  background-color: #AA6C39 !important;
+.mdl-layout-title {
+  color: white !important;
+  font-size: 26px;
 }
 
-/* Estilo fondo de la web */
+.centered-logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.mdl-layout__header-row {
+  position: relative;
+  overflow: visible;
+}
+
+/* ---------------- SELECTOR NUEVO ---------------- */
+
+#selectorPantallas {
+  position: relative;
+  width: 100%;
+  padding: 12px 0;
+  background: #AA6C39;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#selectorLabel {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+}
+
+#btnLeft {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#btnRight {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.selector-arrow {
+  font-size: 22px;
+  background: #AA6C39;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.selector-arrow:active {
+  transform: scale(0.9);
+}
+
+#homeView {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 0;
+}
+
+/* ---------------- BODY ---------------- */
+
 body {
   min-height: 100vh;
   background: linear-gradient(180deg, #499273, #AA6C39);
 }
 
-/* Estilo para los card */
-.demo-card-wide.mdl-card {
-  width: 512px;
-  margin: 50px auto;
+/* Estilos mínimos para el tablón */
+#timeline {
+  width: 100%;
+  max-width: 760px;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 12px;
+  background: #242424;
 }
 
-.demo-card-wide>.mdl-card__menu {
-  color: #fff;
+.post-box {
+  background: black;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  color: white;
 }
 
-.grid-categorias {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 30px;
-  padding: 30px;
+.compose {
+  display: flex;
+  gap: 12px;
 }
 
-.categoria-col h2 {
-  margin-left: 20px;
+.avatar-sm {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
 }
+
+.compose textarea {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.post-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: black;
+}
+
+.post-meta {
+  color: white;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.post-text {
+  margin-top: 6px;
+  color: white;
+  white-space: pre-wrap;
+}
+
+.rank-icon {
+  font-size: 0.95em;
+  margin-left: 6px;
+}
+
+#postsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+#composeActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+#btnPost {
+  min-width: 96px;
+  background: #AA6C39 !important;
+}
+
+.disabledOverlayInCompose {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.delete-post-btn {
+  border: none;
+  background: transparent;
+  color: #c33;
+  font-size: 16px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: 0.2s;
+}
+
+.delete-post-btn:hover {
+  color: #ff4444;
+  transform: scale(1.2);
+}
+
+#composeBox {
+  padding: 12px;
+}
+
+#composeText {
+  width: 100%;     
+  background: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  box-sizing: border-box;
+  resize: none;             
+  display: block;
+}
+
+#composeText:disabled {
+  opacity: 0.7;
+}
+
+
+/* imagen del rango del usuario */
+.rank-img {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+/* ---------------- CARDS ---------------- */
 
 #cardsContainer {
   padding: 30px;
@@ -57,89 +251,101 @@ body {
 
 .demo-card-wide.mdl-card {
   width: 100%;
+  margin: auto;
 }
 
 #searchBox {
+  display: grid !important;
   padding-left: 30px !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ctext x='0' y='15'%3E🔍%3C/text%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: 5px center !important;
   background-size: 18px !important;
+  gap: 12px !important; 
+  margin-right: 12px;
 }
 
-/* wrapper oscuro para buscador y select */
-.filterBox {
-  background: #924967;
+/* ---- AUTH BOX (ventana) ---- */
+#authBox {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(12px) !important;
+  border-radius: 16px !important;
+  padding: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* ---- Título ---- */
+#authBox h3 {
   color: white !important;
-  padding: 6px 12px;
-  border-radius: 6px;
-  display: inline-flex;
-  align-items: center;
+  font-size: 26px !important;
+  font-weight: 600 !important;
 }
 
-/* quitar backgrounds nativos */
-.filterBox input,
-.filterBox select {
-  background: transparent !important;
-  border: none !important;
+/* ---- Botón cerrar ---- */
+#closeAuth {
   color: white !important;
 }
 
-/* quitar la barra inferior del estilo MDL */
+/* ---- Tabs Login / Registrar ---- */
+.tabSwitch {
+  margin-bottom: 20px !important;
+}
+
+.tabSwitch button {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  transition: 0.2s !important;
+}
+
+.tabSwitch button.mdl-button--raised {
+  background: #AA6C39 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+/* ---- Inputs ---- */
 .mdl-textfield__input {
-  border-bottom: none !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 6px !important;
+  padding: 6px 8px !important;
+  /* separación interna del texto */
+  margin-bottom: 10px !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
+  transition: 0.2s !important;
+}
+
+.mdl-textfield__input:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px #AA6C39 !important;
+}
+
+/* ---- Botones de acción (Entrar / Registrar) ---- */
+.auth-actions button {
+  background: #AA6C39 !important;
   color: white !important;
+  text-align: center !important;
+  border-radius: 8px !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25) !important;
+  transition: 0.2s !important;
 }
 
-
-/* Centrar el logo en el header */
-.centered-logo {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+.auth-actions button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
 }
 
-/* Estilo para la palabra "Menú" junto a la hamburguesa */
-.menu-text {
-  font-weight: bold;
-  color: white;
-  font-size: 26px;
+/* ---- Mensaje de error ---- */
+#authMsg {
+  color: #ffdddd !important;
+  font-weight: bold !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* Ajustar para que el logo no afecte la altura del header */
-.mdl-layout__header-row {
-  position: relative;
-  overflow: visible;
-}
+/* ---------------- MODALES ---------------- */
 
-#scannerModal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-#scannerBox {
-  width: 90%;
-  max-width: 500px;
-  background: #222;
-  padding: 20px;
-  border-radius: 10px;
-  color: white;
-  text-align: center;
-}
-
-#videoScanner {
-  width: 100%;
-  border-radius: 10px;
-}
-
+#scannerModal,
 #productoModal {
   position: fixed;
   top: 0;
@@ -150,26 +356,152 @@ body {
   display: none;
   justify-content: center;
   align-items: center;
-  overflow: auto;
   z-index: 9999;
 }
 
+
+#productoModal {
+  overflow: auto;
+}
+
+#scannerBox,
 #productoBox {
-  background: #499273;
-  padding: 20px;
-  border-radius: 14px;
   width: 90%;
-  max-width: 420px;
+  max-width: 500px;
+  background: #222;
+  padding: 20px;
+  border-radius: 10px;
   color: white;
   text-align: center;
 }
 
-/* Ajuste de css para telefono */
+#productoBox {
+  background: #499273;
+}
+
+/* Small auth/profile styles */
+#profileCircle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  margin-left: 12px;
+}
+
+#profileCircle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Auth modal */
+#authModal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 2000;
+}
+
+#authBox {
+  width: 360px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+}
+
+#authBox h3 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.auth-field {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.tabSwitch {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tabSwitch button {
+  flex: 1;
+}
+
+/* Center blocking message when not logged */
+#mustLoginOverlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.6));
+  z-index: 1500;
+  color: #fff;
+  font-size: 20px;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Contenedor general de filtros */
+#filtersContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+
+/* Cada caja de filtro */
+.filterBox {
+  display: flex;
+  flex-direction: column;
+  width: 48%;          
+  min-width: 180px;     
+}
+
+/* Mantener estilo MDL sin romper nada */
+.filterBox .mdl-textfield__input {
+  width: 100%;
+}
+
+/* Restaurar comportamiento original de MDL fuera de los filtros */
+.mdl-textfield__input {
+  width: auto !important;
+}
+
+/* Ajustes visuales opcionales */
+.filterBox label {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.mdl-textfield {
+  width: 100%;          
+}
+
+
+/* ---------------- RESPONSIVE ---------------- */
 
 @media (max-width: 768px) {
-  .menu-text {
-    display: none !important;
-  }
 
   #cardsContainer {
     display: flex !important;
@@ -179,10 +511,10 @@ body {
     gap: 20px !important;
   }
 
-  /* Opcional: forzar ancho agradable en móvil */
   .demo-card-wide.mdl-card {
     width: 90% !important;
     max-width: 380px !important;
+    margin: 10px;
   }
 
   #btnOpenScanner {
@@ -190,6 +522,10 @@ body {
     position: relative;
     left: 50%;
     transform: translateX(-50%);
+  }
+
+  #authBox {
+    width: 92%;
   }
 }
 
