@@ -127,8 +127,8 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  background: #924967;
-  color: white;
+  background: #924967 !important;
+  color: white !important;
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 
@@ -399,7 +399,7 @@ body {
   align-items: center;
   justify-content: center;
   color: white !important;
-  background: #AA6C39;
+  background: #AA6C39 !important;
   border: 2px solid rgba(0, 0, 0, 0.1);
   cursor: pointer;
   margin-left: 12px;
