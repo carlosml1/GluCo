@@ -127,9 +127,9 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #ddd;
+  background: #924967;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 
 .compose textarea {
@@ -137,7 +137,7 @@ body {
   min-height: 60px;
   resize: vertical;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
   padding: 8px;
   font-size: 14px;
 }
@@ -309,6 +309,12 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 
+.mdl-button--raised {
+  background: #AA6C39 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: white;
+}
+
 /* ---- Inputs ---- */
 .mdl-textfield__input {
   background: rgba(255, 255, 255, 0.9) !important;
@@ -392,7 +398,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  color: white !important;
+  background: #AA6C39;
   border: 2px solid rgba(0, 0, 0, 0.1);
   cursor: pointer;
   margin-left: 12px;
@@ -530,6 +537,34 @@ body {
 
   #authBox {
     width: 92%;
+  }
+
+   /* Evitar que el home intente ocupar toda la pantalla */
+  #homeView {
+    display: block !important;
+    height: auto !important;
+    padding-top: 20px !important;
+  }
+
+  /* Botón centrado arriba sin ser tapado */
+  #btnOpenScanner {
+    display: block !important;
+    margin: 0 auto 20px auto !important;
+    position: static !important;
+    transform: none !important;
+  }
+
+  /* El timeline ocupa todo el ancho correctamente */
+  #timeline {
+    width: 100% !important;
+    margin: 0 auto !important;
+    border-radius: 0 !important;
+  }
+
+  /* Dejar que el área de posts tenga scroll normal */
+  #postsContainer {
+    max-height: none !important;
+    overflow-y: visible !important;
   }
 }
 
