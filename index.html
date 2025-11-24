@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-orange.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
 
   <link rel="stylesheet" href="style.css">
 
@@ -36,8 +37,8 @@
 
         <!-- Profile circle -->
         <div id="headerControls" style="display:flex;align-items:center;">
-          <div id="profileCircle" title="Perfil" style="display:none; cursor:pointer;">
-            <span id="profileInitials" style="font-weight:700;color:white"></span>
+          <div id="profileCircle" title="Perfil" >
+            <span id="profileInitials" ></span>
           </div>
         </div>
 
@@ -120,7 +121,7 @@
   <div id="scannerModal">
     <div id="scannerBox">
       <h4>Escaneando...</h4>
-      <video id="videoScanner" autoplay></video>
+      <video id="videoScanner" autoplay playsinline></video>
       <button id="btnCloseScanner" class="mdl-button mdl-js-button mdl-button--raised">Cerrar</button>
     </div>
   </div>
@@ -355,13 +356,17 @@
     btnLeft.addEventListener("click", cambiarVista);
     btnRight.addEventListener("click", cambiarVista);
 
-    // --- ESCÁNER ---
+    // --- ESCÁNER COMPATIBLE ANDROID + iOS ---
+
     let scanning = false;
     let stream = null;
     const scannerModal = document.getElementById("scannerModal");
     const btnOpenScanner = document.getElementById("btnOpenScanner");
     const btnCloseScanner = document.getElementById("btnCloseScanner");
     const videoScanner = document.getElementById("videoScanner");
+
+    // ZXing fallback (para iOS viejos)
+    let codeReader = null;
 
     btnOpenScanner.addEventListener("click", async () => {
       scannerModal.style.display = "flex";
@@ -374,55 +379,121 @@
     async function startScanner() {
       scanning = true;
 
-      if (!("BarcodeDetector" in window)) {
-        alert("Tu navegador no soporta BarcodeDetector.");
-        scannerModal.style.display = "none";
-        return;
-      }
+      // --- INTENTAR BarcodeDetector NATIVO ---
+      const barcodeSupported = "BarcodeDetector" in window;
+      let detector = null;
 
-      let detector;
-      try {
-        detector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "code_128"] });
-      } catch {
-        detector = new BarcodeDetector();
-      }
-
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-        videoScanner.srcObject = stream;
-        await videoScanner.play();
-      } catch (error) {
-        alert("No se pudo acceder a la cámara.");
-        scannerModal.style.display = "none";
-        return;
-      }
-
-      const loop = async () => {
-        if (!scanning) return;
+      if (barcodeSupported) {
         try {
-          const codes = await detector.detect(videoScanner);
-          if (codes.length > 0) {
-            const code = codes[0].rawValue;
-            scanning = false;
-            stopScanner();
-            buscarProducto(code);
-            return;
-          }
-        } catch { }
-        requestAnimationFrame(loop);
-      };
+          detector = new BarcodeDetector({
+            formats: ["ean_13", "ean_8", "code_128"]
+          });
+        } catch (e) {
+          detector = new BarcodeDetector();
+        }
+      }
 
-      requestAnimationFrame(loop);
+      // --- SOLICITAR CÁMARA COMPATIBLE CON iOS ---
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" }
+          },
+          audio: false
+        });
+      } catch (e) {
+        // fallback iOS si falla facingMode
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true
+        });
+      }
+
+      videoScanner.srcObject = stream;
+
+      try {
+        await videoScanner.play();
+      } catch (e) {
+        alert("No se pudo reproducir la cámara.");
+        stopScanner();
+        return;
+      }
+
+      // --- SI BarcodeDetector EXISTE → USARLO ---
+      if (barcodeSupported) {
+        const loop = async () => {
+          if (!scanning) return;
+
+          try {
+            const codes = await detector.detect(videoScanner);
+            if (codes.length > 0) {
+              const code = codes[0].rawValue;
+              scanning = false;
+              stopScanner();
+              buscarProducto(code);
+              return;
+            }
+          } catch { }
+
+          requestAnimationFrame(loop);
+        };
+
+        loop();
+        return;
+      }
+
+      // --- SI NO hay BarcodeDetector → fallback ZXing ---
+      await startZXingFallback();
     }
 
+    // Cierra cámara completamente
     function stopScanner() {
       scanning = false;
       scannerModal.style.display = "none";
+
+      if (codeReader) {
+        try { codeReader.reset(); } catch { }
+      }
+
       if (stream) {
         stream.getTracks().forEach(t => t.stop());
         stream = null;
       }
+
       videoScanner.srcObject = null;
+    }
+
+
+    // --- ZXing fallback para iOS antiguos ---
+    async function startZXingFallback() {
+      // Cargar ZXing si no existe
+      if (!codeReader) {
+        codeReader = new ZXing.BrowserMultiFormatReader();
+      }
+
+      try {
+        const videoInputDevices = await codeReader.listVideoInputDevices();
+        const backCamera = videoInputDevices.find(d =>
+          d.label.toLowerCase().includes("back")
+        ) || videoInputDevices[0];
+
+        await codeReader.decodeFromVideoDevice(
+          backCamera.deviceId,
+          videoScanner,
+          (result, err) => {
+            if (!scanning) return;
+
+            if (result) {
+              scanning = false;
+              stopScanner();
+              buscarProducto(result.text);
+            }
+          }
+        );
+      } catch (e) {
+        console.error("ZXing fallback error:", e);
+        alert("No se pudo iniciar el lector en este dispositivo.");
+        stopScanner();
+      }
     }
 
     // --- MOSTRAR PRODUCTO ---
