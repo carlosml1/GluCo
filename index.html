@@ -19,6 +19,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
+<!-- 🎟️ MODAL TICKET -->
+
+<div id="ticketModal">
+  <div class="ticket-modal-box">
+
+    <div class="ticket-header">
+      <h3>Centro de Soporte</h3>
+      <button id="closeTicketModal">✖</button>
+    </div>
+
+    <div class="ticket-body">
+
+      <!-- Tipo de problema -->
+      <label>Indique el problema</label>
+      <select id="ticketType">
+        <option value="">Seleccionar...</option>
+        <option value="duda">Duda</option>
+        <option value="nuevo">Nuevo producto</option>
+        <option value="otro">Otro</option>
+      </select>
+
+      <!-- CONTENEDOR DINÁMICO -->
+      <div id="ticketDynamicFields"></div>
+
+      <button id="sendTicketBtn" class="ticket-send-btn">
+        Enviar Ticket
+      </button>
+
+      <div id="ticketMsg"></div>
+
+    </div>
+  </div>
+</div>
+
+
 <body>
 
   <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
@@ -30,15 +65,15 @@
         <div class="mdl-layout-spacer"></div>
 
         <a class="mdl-layout-title centered-logo" href="#top" id="btnHomeHeader">
-          <img src="imagenes/botonImgTitulo.png" style="height:50px;">
+          <img src="imagenes/botonImgTitulo.png" style="height:50px;margin: 5px;">
         </a>
 
         <div class="mdl-layout-spacer"></div>
 
         <!-- Profile circle -->
         <div id="headerControls" style="display:flex;align-items:center;">
-          <div id="profileCircle" title="Perfil" >
-            <span id="profileInitials" ></span>
+          <div id="profileCircle" title="Perfil">
+            <span id="profileInitials"></span>
           </div>
         </div>
 
@@ -68,7 +103,7 @@
               <textarea id="composeText" placeholder="¿Qué estás pensando?" maxlength="1000" disabled></textarea>
 
               <div id="composeActions" style="display:flex; align-items:center; justify-content:space-between;">
-                <div style="font-size:0.85em;color:#666;">Máx. 1000 caracteres</div>
+                <div style="font-size:0.85em;color:#D98A3D;">Máx. 1000 caracteres</div>
                 <div style="display:flex; gap:8px; align-items:center;">
                   <button id="btnOpenAuthFromCompose" class="mdl-button mdl-js-button mdl-button--primary"
                     style="display:none;">Iniciar sesión</button>
@@ -82,7 +117,7 @@
 
         <!-- Contenedor de posts -->
         <div id="postsContainer">
-          <div style="text-align:center;color:#666;">Cargando posts...</div>
+          <div style="text-align:center;color:#D98A3D;">Cargando posts...</div>
         </div>
 
         <!-- Botón “Cargar más” -->
@@ -208,6 +243,14 @@
     const searchBox = document.getElementById("searchBox");
     const catSelect = document.getElementById("catSelect");
     const cardsTarget = document.getElementById("cardsContainer");
+
+    const ticketModal = document.getElementById("ticketModal");
+    const ticketFab = document.getElementById("ticketFab");
+    const closeTicketModal = document.getElementById("closeTicketModal");
+    const ticketType = document.getElementById("ticketType");
+    const ticketDynamicFields = document.getElementById("ticketDynamicFields");
+    const sendTicketBtn = document.getElementById("sendTicketBtn");
+    const ticketMsg = document.getElementById("ticketMsg");
 
     let productos = [];
     let isLoading = false;
@@ -714,18 +757,123 @@
       renderPostsList(items);
     }
 
+    // Abrir modal
+    ticketFab.addEventListener("click", () => {
+      ticketModal.style.display = "flex";
+    });
+
+    // Cerrar modal
+    closeTicketModal.addEventListener("click", () => {
+      ticketModal.style.display = "none";
+      resetTicketForm();
+    });
+
+    // Cambiar campos dinámicamente
+    ticketType.addEventListener("change", () => {
+      const value = ticketType.value;
+      ticketDynamicFields.innerHTML = "";
+
+      if (value === "duda") {
+        ticketDynamicFields.innerHTML = `<div class="ticket-field"><label for="ticketText">Indique su duda</label><textarea id="ticketText"></textarea></div>`;
+      }
+      if (value === "nuevo") {
+        ticketDynamicFields.innerHTML = ticketDynamicFields.innerHTML = `
+  <div class="ticket-field">
+    <label for="ticketProductName">Nombre del producto</label>
+    <input type="text" id="ticketProductName">
+  </div>
+
+  <div class="ticket-field">
+    <label for="ticketCompanyName">Nombre de la empresa</label>
+    <input type="text" id="ticketCompanyName">
+  </div>
+
+  <div class="ticket-field">
+    <label for="ticketBarcode">Número del código de barra</label>
+    <input type="text" id="ticketBarcode">
+  </div>
+`;}
+
+      if (value === "otro") {
+        ticketDynamicFields.innerHTML = `
+  <div class="ticket-field">
+    <label for="ticketText">Indique lo que le suceda o necesite</label>
+    <textarea id="ticketText"></textarea>
+  </div>
+`;
+      }
+    });
+
+    // Enviar ticket
+    sendTicketBtn.addEventListener("click", async () => {
+      const type = ticketType.value;
+      if (!type) return alert("Seleccione un tipo de problema.");
+
+      let data = { tipo: type };
+
+      if (type === "duda" || type === "otro") {
+        const text = document.getElementById("ticketText")?.value.trim();
+        if (!text) return alert("Complete el campo requerido.");
+        data.mensaje = text;
+      }
+
+      if (type === "nuevo") {
+        const nombre = document.getElementById("ticketProductName")?.value.trim();
+        const empresa = document.getElementById("ticketCompanyName")?.value.trim();
+        const codigo = document.getElementById("ticketBarcode")?.value.trim();
+
+        if (!nombre || !empresa || !codigo)
+          return alert("Complete todos los campos del nuevo producto.");
+
+        data.nombreProducto = nombre;
+        data.nombreEmpresa = empresa;
+        data.codigoBarras = codigo;
+      }
+
+      console.log("Ticket enviado:", data);
+
+      ticketMsg.textContent = "🎟️ Ticket enviado correctamente.";
+      setTimeout(() => {
+        ticketModal.style.display = "none";
+        resetTicketForm();
+      }, 1500);
+    });
+
+    function resetTicketForm() {
+      ticketType.value = "";
+      ticketDynamicFields.innerHTML = "";
+      ticketMsg.textContent = "";
+    }
+
     (async () => {
       const cur = localStorage.getItem('gluco_currentUser');
-      if (cur) {
-        try {
-          const snap = await getDoc(doc(db, 'Usuarios', cur));
-          if (snap.exists()) updateUIForUser(cur, snap.data().nombreUsuario || cur);
-          else updateUIForUser(null);
-        } catch (e) { console.error(e); updateUIForUser(null); }
-      } else updateUIForUser(null);
-      mustLoginOverlay.style.display = localStorage.getItem('gluco_currentUser') ? 'none' : 'flex';
-      profileCircle.style.display = 'flex';
+
+      if (!cur) {
+        // 🔒 Usuario NO logueado → bloquear web y forzar login
+        mustLoginOverlay.style.display = 'flex';
+        openAuth('login');
+        profileCircle.style.display = 'none';
+        return;
+      }
+
+      // ✅ Usuario logueado
+      try {
+        const snap = await getDoc(doc(db, 'Usuarios', cur));
+        if (snap.exists()) {
+          updateUIForUser(cur, snap.data().nombreUsuario || cur);
+        } else {
+          localStorage.removeItem('gluco_currentUser');
+          mustLoginOverlay.style.display = 'flex';
+          openAuth('login');
+        }
+      } catch (e) {
+        console.error(e);
+        localStorage.removeItem('gluco_currentUser');
+        mustLoginOverlay.style.display = 'flex';
+        openAuth('login');
+      }
     })();
+
 
     btnOpenAuthFromCompose.addEventListener('click', () => openAuth('login'));
 
@@ -854,7 +1002,7 @@
           <div class="post-meta">
             <strong>${nombreEsc}</strong>
             ${icon ? `<span class="rank-icon" title="${escapeHtml(p.autorRango || '')}">${icon}</span>` : ''}
-            <span style="color:#888;font-size:0.85em;margin-left:8px;">${fechaTxt}</span>
+            <span style="color:#D98A3D;font-size:0.85em;margin-left:8px;">${fechaTxt}</span>
           </div>
           <div class="post-text">${mensajeEsc}</div>
         </div>
@@ -941,6 +1089,10 @@
     mustLoginOverlay.addEventListener('click', () => openAuth('login'));
 
   </script>
+
+  <button id="ticketFab" class="ticket-fab">
+    <span class="ticket-icon">🎟️</span>
+  </button>
 
 </body>
 

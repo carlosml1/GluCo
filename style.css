@@ -1,7 +1,7 @@
 body {
     font-family: "Roboto", sans-serif !important;
+    margin: 0;
 }
-
 
 /* ---------------- HEADER ---------------- */
 
@@ -94,7 +94,8 @@ body {
   background: linear-gradient(180deg, #499273, #AA6C39);
 }
 
-/* Estilos mínimos para el tablón */
+/* ---------------- TIMELINE / POSTS ---------------- */
+
 #timeline {
   width: 100%;
   max-width: 760px;
@@ -103,11 +104,11 @@ body {
   flex-direction: column;
   gap: 12px;
   border-radius: 12px;
-  background: #242424;
+  background: linear-gradient(135deg, #8E3A59, #6F2C45);
 }
 
 .post-box {
-  background: black;
+  background: #A64D6B;
   border-radius: 12px;
   padding: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
@@ -127,26 +128,16 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  background: #924967 !important;
+  background: #D98A3D !important;
   color: white !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-}
-
-.compose textarea {
-  width: 100%;
-  min-height: 60px;
-  resize: vertical;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  padding: 8px;
-  font-size: 14px;
+  border: 1px solid rgba(218, 123, 0, 0.25) !important;
 }
 
 .post-item {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  background: black;
+  background: #A64D6B;
 }
 
 .post-meta {
@@ -174,8 +165,8 @@ body {
   flex-direction: column;
   gap: 12px;
   margin-top: 6px;
-  max-height: 600px;       
-  overflow-y: auto; 
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 #composeActions {
@@ -189,31 +180,12 @@ body {
 #btnPost {
   min-width: 96px;
   background: #AA6C39 !important;
+  color: white;
 }
 
-.disabledOverlayInCompose {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-}
-
-.delete-post-btn {
-  border: none;
-  background: transparent;
-  color: #c33;
-  font-size: 16px;
-  cursor: pointer;
-  margin-left: 10px;
-  transition: 0.2s;
-}
-
-.delete-post-btn:hover {
-  color: #ff4444;
-  transform: scale(1.2);
+#loadMoreBtn{
+  background: #AA6C39 !important;
+  color: white;
 }
 
 #composeBox {
@@ -221,13 +193,13 @@ body {
 }
 
 #composeText {
-  width: 100%;     
+  width: 100%;
   background: #fff;
   border: none;
   border-radius: 6px;
   padding: 10px;
   box-sizing: border-box;
-  resize: none;             
+  resize: none;
   display: block;
 }
 
@@ -235,13 +207,18 @@ body {
   opacity: 0.7;
 }
 
-
-/* imagen del rango del usuario */
 .rank-img {
   width: 24px;
   height: 24px;
   vertical-align: middle;
   margin-left: 4px;
+}
+
+/* Imagen en posts */
+.post-image img {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 8px;
 }
 
 /* ---------------- CARDS ---------------- */
@@ -265,131 +242,12 @@ body {
   background-repeat: no-repeat !important;
   background-position: 5px center !important;
   background-size: 18px !important;
-  gap: 12px !important; 
+  gap: 12px !important;
   margin-right: 12px;
 }
 
-/* ---- AUTH BOX (ventana) ---- */
-#authBox {
-  background: rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(12px) !important;
-  border-radius: 16px !important;
-  padding: 28px !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35) !important;
-}
+/* ---------------- AUTH ---------------- */
 
-/* ---- Título ---- */
-#authBox h3 {
-  color: white !important;
-  font-size: 26px !important;
-  font-weight: 600 !important;
-}
-
-/* ---- Botón cerrar ---- */
-#closeAuth {
-  color: white !important;
-}
-
-/* ---- Tabs Login / Registrar ---- */
-.tabSwitch {
-  margin-bottom: 20px !important;
-}
-
-.tabSwitch button {
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: white !important;
-  border-radius: 8px !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  transition: 0.2s !important;
-}
-
-.tabSwitch button.mdl-button--raised {
-  background: #AA6C39 !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-}
-
-.mdl-button--raised {
-  background: #AA6C39 !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  color: white;
-}
-
-/* ---- Inputs ---- */
-.mdl-textfield__input {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-radius: 6px !important;
-  padding: 6px 8px !important;
-  /* separación interna del texto */
-  margin-bottom: 10px !important;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
-  transition: 0.2s !important;
-}
-
-.mdl-textfield__input:focus {
-  outline: none !important;
-  box-shadow: 0 0 0 2px #AA6C39 !important;
-}
-
-/* ---- Botones de acción (Entrar / Registrar) ---- */
-.auth-actions button {
-  background: #AA6C39 !important;
-  color: white !important;
-  text-align: center !important;
-  border-radius: 8px !important;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25) !important;
-  transition: 0.2s !important;
-}
-
-.auth-actions button:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
-}
-
-/* ---- Mensaje de error ---- */
-#authMsg {
-  color: #ffdddd !important;
-  font-weight: bold !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
-}
-
-/* ---------------- MODALES ---------------- */
-
-#scannerModal,
-#productoModal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-
-#productoModal {
-  overflow: auto;
-}
-
-#scannerBox,
-#productoBox {
-  width: 90%;
-  max-width: 500px;
-  background: #222;
-  padding: 20px;
-  border-radius: 10px;
-  color: white;
-  text-align: center;
-}
-
-#productoBox {
-  background: #499273;
-}
-
-/* Small auth/profile styles */
 #profileCircle {
   width: 44px;
   height: 44px;
@@ -402,111 +260,224 @@ body {
   background: #AA6C39 !important;
   border: 2px solid rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  margin-left: 12px;
+  margin: 5px;
 }
 
-#profileCircle img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* ---------------- MODALES ---------------- */
+
+#scannerModal,
+#productoModal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.8);
+  z-index: 9999;
 }
 
-/* Auth modal */
+/* ================= AUTH MODAL ================= */
+
 #authModal {
   position: fixed;
   inset: 0;
+  background: rgba(0, 0, 0, 0.85);
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 2000;
+  z-index: 10001;
 }
 
 #authBox {
-  width: 360px;
-  background: #fff;
-  border-radius: 10px;
-  padding: 18px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  background: #b37a45;
+  padding: 22px;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.5);
 }
 
-#authBox h3 {
-  text-align: center;
-  margin-top: 0;
-}
+/* ================= LOGIN OBLIGATORIO ================= */
 
-.auth-field {
-  display: block;
-  margin-bottom: 10px;
-}
-
-.auth-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 12px;
-}
-
-.tabSwitch {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.tabSwitch button {
-  flex: 1;
-}
-
-/* Center blocking message when not logged */
 #mustLoginOverlay {
   position: fixed;
   inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 10000;
   display: none;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.6));
-  z-index: 1500;
-  color: #fff;
-  font-size: 20px;
-  padding: 20px;
+  color: white;
+  font-size: 1.2em;
   text-align: center;
+  cursor: pointer;
 }
 
-/* Contenedor general de filtros */
-#filtersContainer {
+/* =============================== */
+/* 🎟️ MODAL TICKET DISEÑO PRO */
+/* =============================== */
+
+#ticketModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.ticket-modal-box {
+  width: 95%;
+  max-width: 450px;
+  background: #924967;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  animation: popUp 0.3s ease;
+}
+
+@keyframes popUp {
+  from { transform: scale(0.8); opacity:0; }
+  to { transform: scale(1); opacity:1; }
+}
+
+.ticket-header {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 10px;
 }
 
-
-/* Cada caja de filtro */
-.filterBox {
-  display: flex;
-  flex-direction: column;
-  width: 48%;          
-  min-width: 180px;     
-}
-
-/* Mantener estilo MDL sin romper nada */
-.filterBox .mdl-textfield__input {
+.ticket-header h3 {
+  margin: 0;
+  color: white;
+  text-align: center;
   width: 100%;
 }
 
-/* Restaurar comportamiento original de MDL fuera de los filtros */
-.mdl-textfield__input {
-  width: auto !important;
+.ticket-header button {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: white;
 }
 
-/* Ajustes visuales opcionales */
-.filterBox label {
+.ticket-field {
+  margin-bottom: 5px;
+}
+
+.ticket-body {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Labels */
+.ticket-body label {
+  font-size: 14px;
   font-weight: 500;
+  color: white;
   margin-bottom: 4px;
 }
 
-.mdl-textfield {
-  width: 100%;          
+/* Select / Input / Textarea */
+.ticket-body select,
+.ticket-body input,
+.ticket-body textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid #ddd;
+  font-size: 14px;
+  transition: 0.2s ease;
+  box-sizing: border-box;
+}
+
+/* Focus elegante */
+.ticket-body select:focus,
+.ticket-body input:focus,
+.ticket-body textarea:focus {
+  border-color: #ff5f6d;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 95, 109, 0.15);
+}
+
+/* Textarea mejor tamaño */
+.ticket-body textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+
+.ticket-send-btn {
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ff7a18, #ff3c3c);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.ticket-send-btn:hover {
+  transform: scale(1.05);
+}
+
+#ticketMsg {
+  font-size: 0.9em;
+  color: green;
+}
+
+.ticket-fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+
+  width: 68px;
+  height: 68px;
+
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #ff5f6d, #ffc371);
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 30px;
+
+  box-shadow:
+    0 10px 25px rgba(0,0,0,0.25),
+    0 0 15px rgba(255, 95, 109, 0.6);
+
+  transition: all 0.25s ease;
+  z-index: 11000;
+}
+
+/* Hover */
+.ticket-fab:hover {
+  transform: scale(1.1) rotate(-8deg);
+  box-shadow:
+    0 15px 35px rgba(0,0,0,0.35),
+    0 0 25px rgba(255, 95, 109, 0.9);
+}
+
+/* Click */
+.ticket-fab:active {
+  transform: scale(0.95);
 }
 
 
@@ -528,40 +499,18 @@ body {
     margin: 10px;
   }
 
-  #btnOpenScanner {
-    margin-top: 40px;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  #authBox {
-    width: 92%;
-  }
-
-   /* Evitar que el home intente ocupar toda la pantalla */
   #homeView {
     display: block !important;
     height: auto !important;
     padding-top: 20px !important;
   }
 
-  /* Botón centrado arriba sin ser tapado */
-  #btnOpenScanner {
-    display: block !important;
-    margin: 0 auto 20px auto !important;
-    position: static !important;
-    transform: none !important;
-  }
-
-  /* El timeline ocupa todo el ancho correctamente */
   #timeline {
     width: 100% !important;
     margin: 0 auto !important;
     border-radius: 0 !important;
   }
 
-  /* Dejar que el área de posts tenga scroll normal */
   #postsContainer {
     max-height: none !important;
     overflow-y: visible !important;
