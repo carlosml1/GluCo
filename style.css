@@ -517,8 +517,174 @@ body {
   }
 }
 
+@media (max-width: 900px) {
+  #ticketsContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  #ticketsContainer {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (min-width: 1024px) {
   #btnOpenScanner {
     display: none !important;
   }
+}
+
+#staffPanel {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: none;
+  z-index: 12000;
+  justify-content: center;
+  align-items: center;
+}
+
+.staff-box {
+  width: 90%;
+  max-width: 1200px;
+  background: #924967;
+  padding: 20px;
+  border-radius: 14px;
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
+#ticketsContainer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.ticket-card {
+  background: #A64D6B;
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
+
+  font-size: 0.85em;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  min-height: 120px;
+}
+
+#chatModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  z-index: 13000;
+  justify-content: center;
+  align-items: center;
+}
+
+.chat-box {
+  width: 90%;
+  max-width: 500px;
+  background: #924967;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+#chatMessages {
+  height: 300px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  color: white;
+}
+
+#notifTicketBtn {
+  position: fixed;
+  bottom: 120px;
+  right: 30px;
+  display: none;
+  padding: 12px;
+  border-radius: 12px;
+  background: #ff5f6d;
+  color: white;
+  border: none;
+  z-index: 14000;
+}
+
+#staffFab {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+
+  width: 65px;
+  height: 65px;
+
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color: white;
+  font-size: 26px;
+
+  display: none; /* 🔴 importante */
+  align-items: center;
+  justify-content: center;
+
+  z-index: 11000;
+
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  transition: 0.25s;
+}
+
+#staffFab:hover {
+  transform: scale(1.1);
+}
+
+#staffFab:active {
+  transform: scale(0.95);
+}
+
+.ticket-card button {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 0.75em;
+}
+
+.ticket-card button:hover {
+  opacity: 0.8;
+}
+
+.staff-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.staff-header h3 {
+  color: #ff7a18;
+  margin: 0;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+#closeTicketBtn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #e53935; /* rojo */
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#closeTicketBtn:hover {
+  background: #c62828;
 }

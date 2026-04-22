@@ -17,6 +17,10 @@
   <link rel="stylesheet" href="style.css">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Mapa -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 
 <!-- 🎟️ MODAL TICKET -->
@@ -50,6 +54,10 @@
       <div id="ticketMsg"></div>
 
     </div>
+
+    <button id="staffFab">🎟️</button>
+    </body>
+
   </div>
 </div>
 
@@ -150,6 +158,12 @@
       </div>
     </main>
 
+    <!-- MAPA -->
+    <!-- MAPA -->
+    <main class="mdl-layout__content" id="vistaMapa" style="display:none;">
+      <div id="map" style="width:100%; height:100vh;"></div>
+    </main>
+
   </div>
 
   <!-- MODAL ESCÁNER -->
@@ -211,6 +225,38 @@
     </div>
   </div>
 
+  <div id="staffPanel">
+    <div class="staff-box">
+
+      <div class="staff-header">
+        <h3>Tickets de Soporte</h3>
+      </div>
+
+      <div id="ticketsContainer"></div>
+
+    </div>
+  </div>
+
+  <div id="chatModal">
+    <div class="chat-box">
+
+      <button id="closeChat">✖</button>
+
+      <div id="chatMessages"></div>
+
+      <div class="chat-input-row">
+        <input id="chatInput" placeholder="Escribe mensaje...">
+        <button id="sendChat">Enviar</button>
+      </div>
+
+      <!-- 🔥 NUEVO BOTÓN -->
+      <button id="closeTicketBtn">Cerrar ticket</button>
+
+    </div>
+  </div>
+
+  <button id="notifTicketBtn">💬 Soporte respondió</button>
+
   <!-- Blocking overlay when not logged -->
   <div id="mustLoginOverlay">Por favor, inicia sesión para continuar.</div>
 
@@ -222,7 +268,7 @@
       addDoc, serverTimestamp, onSnapshot, query, orderBy, deleteDoc
     } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-
+    import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyALHRvYyTQSTytCPZfbYxd8nmQn0-MGRNg",
@@ -252,8 +298,25 @@
     const sendTicketBtn = document.getElementById("sendTicketBtn");
     const ticketMsg = document.getElementById("ticketMsg");
 
+    const storage = getStorage(app);
+
     let productos = [];
     let isLoading = false;
+
+    const imageCache = {};
+
+    async function getImageURL(path) {
+      if (imageCache[path]) return imageCache[path];
+
+      try {
+        const url = await getDownloadURL(ref(storage, path));
+        imageCache[path] = url;
+        return url;
+      } catch {
+        imageCache[path] = null;
+        return null;
+      }
+    }
 
     CATS.forEach(c => {
       const opt = document.createElement("option");
@@ -271,24 +334,44 @@
     }
 
     async function card(d) {
-      let bigImg = `imgProductos/${d.id}.png`;
+
+      // 🔹 NORMALIZAR EMPRESA
       let emp = (d.NombreEmpresa || "").toLowerCase().trim();
       emp = emp.normalize("NFD").replace(/[̀-ͯ]/g, "");
       emp = emp.replace(/[^a-z0-9]/g, "");
-      let smallImg = `imgEmpresas/${emp}.png`;
+
+      // 🔹 STORAGE
+      let safeId = String(d.id).trim();
+      let bigImg = await getImageURL(`producto/${safeId}.png`); // ✅ ID = código barras
+      let smallImg = await getImageURL(`empresa/${emp}.png`);
+
+      // 🔹 FALLBACKS
+      if (!bigImg) bigImg = "imagenes/defaultProducto.png";
+      if (!smallImg) smallImg = "imagenes/defaultEmpresa.png";
 
       return `
-      <div class="demo-card-wide mdl-card mdl-shadow--2dp" style="border-radius:14px;overflow:hidden;background:#499273">
-        <div class="mdl-card__title" style="height:176px;background-image:url('${bigImg}');background-size:contain;background-position:center;background-repeat:no-repeat;margin:5px;"></div>
-        <div style="display:flex;justify-content:center;margin-top:-30px;">
-          <img src="${smallImg}" style="width:100px;height:100px;border-radius:50%;border:3px solid white;object-fit:contain;background:#924967;padding:8px;">
-        </div>
-        <div class="mdl-card__supporting-text" style="display:block;width:100%;text-align:center;background:#AA6C39">
-          <strong>${escapeHtml(d.NombreEmpresa || '')}</strong>
-          ${d.Nombre ? `<div style="font-size:0.9em;color:black;margin-top:6px;">${escapeHtml(d.Nombre)}</div>` : ``}
-          ${d.Ok ? `<div style="font-size:0.85em;color:white;margin-top:8px;">${escapeHtml(d.Ok)}</div>` : ``}
-        </div>
-      </div>`;
+    <div class="demo-card-wide mdl-card mdl-shadow--2dp" style="border-radius:14px;overflow:hidden;background:#499273">
+
+      <div class="mdl-card__title"
+        style="height:176px;
+        background-image:url('${bigImg}');
+        background-size:contain;
+        background-position:center;
+        background-repeat:no-repeat;">
+      </div>
+
+      <div style="display:flex;justify-content:center;margin-top:-30px;">
+        <img src="${smallImg}"
+          style="width:100px;height:100px;border-radius:50%;border:3px solid white;object-fit:contain;background:#924967;padding:8px;">
+      </div>
+
+      <div class="mdl-card__supporting-text" style="text-align:center;background:#AA6C39">
+        <strong>${d.NombreEmpresa || ''}</strong>
+        ${d.Nombre ? `<div>${d.Nombre}</div>` : ``}
+      </div>
+
+    </div>
+  `;
     }
 
     function render() {
@@ -382,22 +465,41 @@
     const selectorLabel = document.getElementById("selectorLabel");
     const btnLeft = document.getElementById("btnLeft");
     const btnRight = document.getElementById("btnRight");
-    let vistaActual = "principal";
+    let vistaActual = 0;
+    const vistas = ["principal", "productos", "mapa"];
 
-    function cambiarVista() {
-      if (vistaActual === "principal") {
-        mostrarProductos();
-        vistaActual = "productos";
-        selectorLabel.textContent = "Productos";
-      } else {
-        mostrarHome();
-        vistaActual = "principal";
+    function cambiarVista(direccion) {
+      if (direccion === "right") vistaActual++;
+      else vistaActual--;
+
+      if (vistaActual < 0) vistaActual = vistas.length - 1;
+      if (vistaActual >= vistas.length) vistaActual = 0;
+
+      const vista = vistas[vistaActual];
+
+      document.getElementById("homeView").style.display = "none";
+      document.getElementById("vistaProductos").style.display = "none";
+      document.getElementById("vistaMapa").style.display = "none";
+
+      if (vista === "principal") {
+        document.getElementById("homeView").style.display = "flex";
         selectorLabel.textContent = "Principal";
+      }
+
+      if (vista === "productos") {
+        document.getElementById("vistaProductos").style.display = "block";
+        selectorLabel.textContent = "Productos";
+      }
+
+      if (vista === "mapa") {
+        document.getElementById("vistaMapa").style.display = "block";
+        selectorLabel.textContent = "Mapa";
+        setTimeout(initMapa, 100); // importante para render
       }
     }
 
-    btnLeft.addEventListener("click", cambiarVista);
-    btnRight.addEventListener("click", cambiarVista);
+    btnLeft.addEventListener("click", () => cambiarVista("left"));
+    btnRight.addEventListener("click", () => cambiarVista("right"));
 
     // --- ESCÁNER COMPATIBLE ANDROID + iOS ---
 
@@ -711,10 +813,19 @@
     }
 
     // Actualiza la UI del header y del compose dependiendo del usuario
+    let listenersActivos = false; // 👈 pon esto FUERA de la función (arriba del todo)
+
     async function updateUIForUser(email, displayName) {
       if (email) {
         profileCircle.style.display = 'flex';
-        const initials = (displayName || email).split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+
+        const initials = (displayName || email)
+          .split(' ')
+          .map(s => s[0])
+          .slice(0, 2)
+          .join('')
+          .toUpperCase();
+
         profileInitials.textContent = initials;
         mustLoginOverlay.style.display = 'none';
 
@@ -724,7 +835,20 @@
 
         const ud = await getCurrentUserData();
         const name = ud && ud.nombreUsuario ? ud.nombreUsuario : displayName || email;
-        composeAvatar.textContent = (name || email).split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+
+        composeAvatar.textContent = (name || email)
+          .split(' ')
+          .map(s => s[0])
+          .slice(0, 2)
+          .join('')
+          .toUpperCase();
+
+        // 🔥 AÑADE ESTO AQUÍ
+        if (!listenersActivos) {
+          activarPanelStaff();
+          listenUserResponses();
+          listenersActivos = true;
+        }
 
       } else {
         profileCircle.style.display = 'none';
@@ -736,15 +860,22 @@
         composeAvatar.textContent = '?';
       }
 
-      // ⚡ Refrescar posts automáticamente
+      // ⚡ TU CÓDIGO DE POSTS (NO TOCAR)
       const snap = await getDocs(query(collection(db, 'Posts'), orderBy('fecha', 'desc')));
       const items = [];
+
       snap.forEach(d => {
         const data = d.data();
         let fechaVal = null;
+
         try {
-          fechaVal = data.fecha && data.fecha.toDate ? data.fecha.toDate().getTime() : (data.fecha ? new Date(data.fecha).getTime() : null);
-        } catch { fechaVal = null; }
+          fechaVal = data.fecha && data.fecha.toDate
+            ? data.fecha.toDate().getTime()
+            : (data.fecha ? new Date(data.fecha).getTime() : null);
+        } catch {
+          fechaVal = null;
+        }
+
         items.push({
           id: d.id,
           autorEmail: data.autorEmail,
@@ -754,6 +885,7 @@
           fecha: fechaVal
         });
       });
+
       renderPostsList(items);
     }
 
@@ -792,7 +924,8 @@
     <label for="ticketBarcode">Número del código de barra</label>
     <input type="text" id="ticketBarcode">
   </div>
-`;}
+`;
+      }
 
       if (value === "otro") {
         ticketDynamicFields.innerHTML = `
@@ -809,34 +942,51 @@
       const type = ticketType.value;
       if (!type) return alert("Seleccione un tipo de problema.");
 
-      let data = { tipo: type };
+      const cur = localStorage.getItem('gluco_currentUser');
+      if (!cur) return alert("Debes iniciar sesión.");
 
+      let data = {
+        tipo: type,
+        autorEmail: cur,
+        estado: "abierto",
+        staffAsignado: null,
+        fecha: serverTimestamp()
+      };
+
+      // ---- Duda / Otro ----
       if (type === "duda" || type === "otro") {
         const text = document.getElementById("ticketText")?.value.trim();
         if (!text) return alert("Complete el campo requerido.");
         data.mensaje = text;
       }
 
+      // ---- Nuevo producto ----
       if (type === "nuevo") {
         const nombre = document.getElementById("ticketProductName")?.value.trim();
         const empresa = document.getElementById("ticketCompanyName")?.value.trim();
         const codigo = document.getElementById("ticketBarcode")?.value.trim();
 
         if (!nombre || !empresa || !codigo)
-          return alert("Complete todos los campos del nuevo producto.");
+          return alert("Complete todos los campos.");
 
         data.nombreProducto = nombre;
         data.nombreEmpresa = empresa;
         data.codigoBarras = codigo;
       }
 
-      console.log("Ticket enviado:", data);
+      try {
+        await addDoc(collection(db, "Tickets"), data);
 
-      ticketMsg.textContent = "🎟️ Ticket enviado correctamente.";
-      setTimeout(() => {
-        ticketModal.style.display = "none";
-        resetTicketForm();
-      }, 1500);
+        ticketMsg.textContent = "🎟️ Ticket enviado correctamente.";
+        setTimeout(() => {
+          ticketModal.style.display = "none";
+          resetTicketForm();
+        }, 1200);
+
+      } catch (e) {
+        console.error(e);
+        alert("Error: " + e.message);
+      }
     });
 
     function resetTicketForm() {
@@ -1087,6 +1237,271 @@
     });
 
     mustLoginOverlay.addEventListener('click', () => openAuth('login'));
+
+    import { updateDoc } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+    let currentTicket = null;
+
+    // =========================
+    // 🧑‍💻 PANEL STAFF
+    // =========================
+
+    const staffFab = document.getElementById("staffFab");
+
+    async function activarPanelStaff() {
+      const ud = await getCurrentUserData();
+
+      console.log("USER DATA:", ud);
+
+      if (ud && ud.rango === "staff") {
+        console.log("ES STAFF ✅");
+        staffFab.style.display = "flex";
+        listenTickets();
+      } else {
+        console.log("NO ES STAFF ❌");
+      }
+    }
+
+    document.getElementById("staffPanel").addEventListener("click", (e) => {
+      if (e.target.id === "staffPanel") {
+        e.currentTarget.style.display = "none";
+      }
+    });
+
+    staffFab.addEventListener("click", () => {
+      document.getElementById("staffPanel").style.display = "flex";
+    });
+
+    // =========================
+    // 🎟️ ESCUCHAR TICKETS
+    // =========================
+
+    function listenTickets() {
+      const container = document.getElementById("ticketsContainer");
+
+      onSnapshot(collection(db, "Tickets"), snap => {
+        container.innerHTML = "";
+
+        snap.forEach(docu => {
+          const t = docu.data();
+
+          // 🔥 NO mostrar cerrados
+          if (t.estado === "cerrado") return;
+
+          const html = `
+        <div class="ticket-card">
+          <strong>${t.tipo}</strong><br>
+          ${t.mensaje || ""}<br>
+
+          Estado: ${t.estado}<br>
+          Staff: ${t.staffAsignado || "Nadie"}
+
+          ${!t.staffAsignado
+              ? `<button onclick="aceptarTicket('${docu.id}')">Aceptar</button>`
+              : ""
+            }
+
+          ${t.staffAsignado === localStorage.getItem('gluco_currentUser')
+              ? `<button onclick="abrirChat('${docu.id}')">Abrir chat</button>`
+              : ""
+            }
+        </div>
+      `;
+
+          container.insertAdjacentHTML("beforeend", html);
+        });
+      });
+    }
+
+    // =========================
+    // 🔒 ACEPTAR TICKET
+    // =========================
+
+    window.aceptarTicket = async function (id) {
+      const ref = doc(db, "Tickets", id);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) return;
+
+      const data = snap.data();
+
+      if (data.staffAsignado) {
+        alert("Ya está asignado.");
+        return;
+      }
+
+      await updateDoc(ref, {
+        staffAsignado: localStorage.getItem('gluco_currentUser'),
+        estado: "en_proceso"
+      });
+    };
+
+    // =========================
+    // 💬 CHAT
+    // =========================
+
+    window.abrirChat = function (ticketId) {
+      currentTicket = ticketId;
+      document.getElementById("chatModal").style.display = "flex";
+
+      const container = document.getElementById("chatMessages");
+
+      onSnapshot(collection(db, "MensajesTicket"), snap => {
+        container.innerHTML = "";
+
+        snap.forEach(d => {
+          const m = d.data();
+          if (m.ticketId !== ticketId) return;
+
+          container.innerHTML += `
+        <div><strong>${m.autorEmail}:</strong> ${m.mensaje}</div>
+      `;
+        });
+      });
+    };
+
+    // =========================
+    // ✉️ ENVIAR MENSAJE
+    // =========================
+
+    document.getElementById("sendChat").addEventListener("click", async () => {
+      const text = document.getElementById("chatInput").value;
+      if (!text) return;
+
+      await addDoc(collection(db, "MensajesTicket"), {
+        ticketId: currentTicket,
+        autorEmail: localStorage.getItem('gluco_currentUser'),
+        mensaje: text,
+        fecha: serverTimestamp()
+      });
+
+      document.getElementById("chatInput").value = "";
+    });
+
+
+    // =========================
+    // 🔔 NOTIFICACIONES USER
+    // =========================
+
+    function listenUserResponses() {
+      const cur = localStorage.getItem('gluco_currentUser');
+
+      onSnapshot(collection(db, "MensajesTicket"), snap => {
+        snap.forEach(d => {
+          const m = d.data();
+
+          if (m.autorEmail !== cur) {
+            const btn = document.getElementById("notifTicketBtn");
+            btn.style.display = "block";
+
+            btn.onclick = () => {
+              abrirChat(m.ticketId);
+            };
+          }
+        });
+      });
+    }
+
+    document.getElementById("closeChat").addEventListener("click", () => {
+      document.getElementById("chatModal").style.display = "none";
+    });
+
+    document.getElementById("chatModal").addEventListener("click", (e) => {
+      if (e.target.id === "chatModal") {
+        e.currentTarget.style.display = "none";
+      }
+    });
+
+    document.getElementById("closeTicketBtn").addEventListener("click", async () => {
+      if (!currentTicket) return;
+
+      if (!confirm("¿Seguro que quieres cerrar este ticket?")) return;
+
+      try {
+        await updateDoc(doc(db, "Tickets", currentTicket), {
+          estado: "cerrado"
+        });
+
+        alert("Ticket cerrado ✅");
+
+        // cerrar chat
+        document.getElementById("chatModal").style.display = "none";
+
+      } catch (e) {
+        console.error(e);
+        alert("Error al cerrar el ticket");
+      }
+    });
+
+    // SCRIPT MAPA
+    let map = null;
+    let markers = [];
+
+    async function initMapa() {
+      if (map) return;
+
+      // Crear mapa centrado (España por defecto)
+      navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        map = L.map('map').setView([lat, lng], 14);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap & CARTO'
+        }).addTo(map);
+
+        cargarSitiosSinGluten();
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap & CARTO'
+      }).addTo(map);
+
+      cargarSitiosSinGluten();
+    }
+
+    async function cargarSitiosSinGluten() {
+
+      const query = `
+  [out:json][timeout:25];
+  (
+    node["amenity"="restaurant"]["diet:gluten_free"~"yes|only"](around:5000,36.7213,-4.4214);
+    node["amenity"="cafe"]["diet:gluten_free"~"yes|only"](around:5000,36.7213,-4.4214);
+    node["tourism"="hotel"]["diet:gluten_free"~"yes|only"](around:5000,36.7213,-4.4214);
+  );
+  out body;
+  `;
+
+      const url = "https://overpass-api.de/api/interpreter";
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          body: query
+        });
+
+        const data = await res.json();
+
+        data.elements.forEach(el => {
+          if (!el.lat || !el.lon) return;
+
+          const nombre = el.tags.name || "Sin nombre";
+          const tipo = el.tags.amenity || el.tags.tourism || "lugar";
+
+          const marker = L.marker([el.lat, el.lon]).addTo(map);
+
+          marker.bindPopup(`
+        <strong>${nombre}</strong><br>
+        Tipo: ${tipo}<br>
+        Gluten Free: ${el.tags["diet:gluten_free"]}
+      `);
+        });
+
+      } catch (e) {
+        console.error("Error cargando mapa GF:", e);
+      }
+    }
 
   </script>
 
