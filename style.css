@@ -1,6 +1,6 @@
 body {
-    font-family: "Roboto", sans-serif !important;
-    margin: 0;
+  font-family: "Roboto", sans-serif !important;
+  margin: 0;
 }
 
 /* ---------------- HEADER ---------------- */
@@ -183,7 +183,7 @@ body {
   color: white;
 }
 
-#loadMoreBtn{
+#loadMoreBtn {
   background: #AA6C39 !important;
   color: white;
 }
@@ -228,6 +228,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 30px;
+  background: #1f3d36 !important;
 }
 
 .demo-card-wide.mdl-card {
@@ -272,7 +273,7 @@ body {
   display: none;
   justify-content: center;
   align-items: center;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.8);
   z-index: 9999;
 }
 
@@ -294,7 +295,7 @@ body {
   border-radius: 14px;
   width: 90%;
   max-width: 420px;
-  box-shadow: 0 10px 35px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
 }
 
 /* ================= LOGIN OBLIGATORIO ================= */
@@ -302,7 +303,7 @@ body {
 #mustLoginOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.9);
+  background: rgba(0, 0, 0, 0.9);
   z-index: 10000;
   display: none;
   align-items: center;
@@ -320,7 +321,7 @@ body {
 #ticketModal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(6px);
   display: none;
   align-items: center;
@@ -334,13 +335,20 @@ body {
   background: #924967;
   border-radius: 18px;
   padding: 20px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
   animation: popUp 0.3s ease;
 }
 
 @keyframes popUp {
-  from { transform: scale(0.8); opacity:0; }
-  to { transform: scale(1); opacity:1; }
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .ticket-header {
@@ -460,7 +468,7 @@ body {
   font-size: 30px;
 
   box-shadow:
-    0 10px 25px rgba(0,0,0,0.25),
+    0 10px 25px rgba(0, 0, 0, 0.25),
     0 0 15px rgba(255, 95, 109, 0.6);
 
   transition: all 0.25s ease;
@@ -471,7 +479,7 @@ body {
 .ticket-fab:hover {
   transform: scale(1.1) rotate(-8deg);
   box-shadow:
-    0 15px 35px rgba(0,0,0,0.35),
+    0 15px 35px rgba(0, 0, 0, 0.35),
     0 0 25px rgba(255, 95, 109, 0.9);
 }
 
@@ -491,6 +499,7 @@ body {
     align-items: center;
     padding: 20px !important;
     gap: 20px !important;
+    background: #1f3d36 !important;
   }
 
   .demo-card-wide.mdl-card {
@@ -538,7 +547,7 @@ body {
 #staffPanel {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.9);
+  background: rgba(0, 0, 0, 0.9);
   display: none;
   z-index: 12000;
   justify-content: center;
@@ -579,7 +588,7 @@ body {
 #chatModal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0, 0, 0, 0.85);
   display: none;
   z-index: 13000;
   justify-content: center;
@@ -630,13 +639,14 @@ body {
   color: white;
   font-size: 26px;
 
-  display: none; /* 🔴 importante */
+  display: none;
+  /* 🔴 importante */
   align-items: center;
   justify-content: center;
 
   z-index: 11000;
 
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   transition: 0.25s;
 }
 
@@ -679,7 +689,8 @@ body {
   padding: 10px;
   border: none;
   border-radius: 8px;
-  background: #e53935; /* rojo */
+  background: #e53935;
+  /* rojo */
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -687,4 +698,32 @@ body {
 
 #closeTicketBtn:hover {
   background: #c62828;
+}
+
+
+.map-loading {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9em;
+  z-index: 9999;
+  display: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

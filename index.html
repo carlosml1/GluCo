@@ -9,7 +9,7 @@
   <link rel="shortcut icon" type="image/png" href="imagenes/logoWeb.png">
   <link rel="apple-touch-icon" href="imagenes/logoWeb.png">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-orange.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-design-lite@1.3.0/material.teal-orange.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
@@ -159,7 +159,6 @@
     </main>
 
     <!-- MAPA -->
-    <!-- MAPA -->
     <main class="mdl-layout__content" id="vistaMapa" style="display:none;">
       <div id="map" style="width:100%; height:100vh;"></div>
     </main>
@@ -255,6 +254,10 @@
     </div>
   </div>
 
+  <div id="mapLoading" class="map-loading">
+    🔄 Cargando lugares sin gluten...
+  </div>
+
   <button id="notifTicketBtn">💬 Soporte respondió</button>
 
   <!-- Blocking overlay when not logged -->
@@ -336,9 +339,8 @@
     async function card(d) {
 
       // 🔹 NORMALIZAR EMPRESA
-      let emp = (d.NombreEmpresa || "").toLowerCase().trim();
-      emp = emp.normalize("NFD").replace(/[̀-ͯ]/g, "");
-      emp = emp.replace(/[^a-z0-9]/g, "");
+      let nombreEmpresa = getEmpresaNombre(d);
+      let emp = normalizeEmpresa(nombreEmpresa);
 
       // 🔹 STORAGE
       let safeId = String(d.id).trim();
@@ -366,12 +368,38 @@
       </div>
 
       <div class="mdl-card__supporting-text" style="text-align:center;background:#AA6C39">
-        <strong>${d.NombreEmpresa || ''}</strong>
+        <strong>${nombreEmpresa}</strong>
         ${d.Nombre ? `<div>${d.Nombre}</div>` : ``}
       </div>
 
     </div>
   `;
+    }
+
+    function normalizeEmpresa(nombre) {
+      if (!nombre) return "";
+
+      const original = nombre.toLowerCase().trim();
+
+      // 🔥 EXCEPCIÓN SCHÄR
+      if (original.includes("schär") || original.includes("schar")) {
+        return "schar";
+      }
+
+      return original
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // quitar acentos BIEN
+        .replace(/\s+/g, "")             // quitar espacios
+        .replace(/[^a-z0-9]/g, "");      // limpiar símbolos
+    }
+
+    function getEmpresaNombre(d) {
+      for (let key in d) {
+        if (key.toLowerCase().includes("nombreempresa")) {
+          return d[key];
+        }
+      }
+      return "";
     }
 
     function render() {
@@ -1434,73 +1462,192 @@
     });
 
     // SCRIPT MAPA
+
     let map = null;
     let markers = [];
+    let timeoutMapa = null;
+    let cacheZonas = new Set();
+    let cargando = false;
+    let userLocation = null;
+    let reintentos = {};
+
+
+    async function getUserLocation() {
+
+      if (userLocation) return userLocation;
+
+      const saved = localStorage.getItem("gluco_user_location");
+      if (saved) {
+        userLocation = JSON.parse(saved);
+        return userLocation;
+      }
+
+      return new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(pos => {
+
+          userLocation = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          };
+
+          localStorage.setItem("gluco_user_location", JSON.stringify(userLocation));
+
+          resolve(userLocation);
+
+        }, () => {
+          console.warn("Usando ubicación fallback");
+
+          userLocation = { lat: 40.4168, lng: -3.7038 }; // Madrid
+
+          resolve(userLocation);
+        });
+      });
+    }
 
     async function initMapa() {
       if (map) return;
 
-      // Crear mapa centrado (España por defecto)
-      navigator.geolocation.getCurrentPosition(pos => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
+      const loc = await getUserLocation();
 
-        map = L.map('map').setView([lat, lng], 14);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; OpenStreetMap & CARTO'
-        }).addTo(map);
-
-        cargarSitiosSinGluten();
-      });
+      map = L.map('map').setView([loc.lat, loc.lng], 14);
 
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap & CARTO'
       }).addTo(map);
 
       cargarSitiosSinGluten();
+
+      map.on('moveend', () => {
+        clearTimeout(timeoutMapa);
+        timeoutMapa = setTimeout(() => {
+          cargarSitiosSinGluten();
+        }, 1000);
+      });
+    }
+
+
+    function getZonaKey(bounds) {
+      return [
+        bounds.getSouth().toFixed(2),
+        bounds.getWest().toFixed(2),
+        bounds.getNorth().toFixed(2),
+        bounds.getEast().toFixed(2)
+      ].join(",");
+    }
+
+    const mapLoading = document.getElementById("mapLoading");
+
+    function showMapLoading() {
+      if (mapLoading) mapLoading.style.display = "block";
+    }
+
+    function hideMapLoading() {
+      if (mapLoading) mapLoading.style.display = "none";
     }
 
     async function cargarSitiosSinGluten() {
 
-      const query = `
-  [out:json][timeout:25];
-  (
-    node["amenity"="restaurant"]["diet:gluten_free"~"yes|only"](around:5000,36.7213,-4.4214);
-    node["amenity"="cafe"]["diet:gluten_free"~"yes|only"](around:5000,36.7213,-4.4214);
-    node["tourism"="hotel"]["diet:gluten_free"~"yes|only"](around:5000,36.7213,-4.4214);
-  );
-  out body;
-  `;
+      if (!map) return;
+      if (map.getZoom() < 13) return;
+      if (cargando) return;
 
-      const url = "https://overpass-api.de/api/interpreter";
+      const bounds = map.getBounds();
+      const zonaKey = getZonaKey(bounds);
+
+      if (cacheZonas.has(zonaKey)) return;
+
+      cargando = true;
+      showMapLoading();
+
+      const south = bounds.getSouth();
+      const west = bounds.getWest();
+      const north = bounds.getNorth();
+      const east = bounds.getEast();
+
+      const query = `
+[out:json][timeout:15];
+(
+  node["amenity"="restaurant"]["diet:gluten_free"~"yes|only"](${south},${west},${north},${east});
+  node["amenity"="cafe"]["diet:gluten_free"~"yes|only"](${south},${west},${north},${east});
+  node["tourism"="hotel"]["diet:gluten_free"~"yes|only"](${south},${west},${north},${east});
+);
+out body;
+`;
+
+      const url = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
 
       try {
-        const res = await fetch(url, {
-          method: "POST",
-          body: query
-        });
 
-        const data = await res.json();
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+
+        const res = await fetch("https://overpass-api.de/api/interpreter", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json"
+          },
+          body: "data=" + encodeURIComponent(query)
+        });
+        clearTimeout(timeout);
+
+        const text = await res.text();
+
+        if (text.startsWith("<")) {
+          console.warn("Overpass devolvió HTML");
+          return; // ⚠️ no cachear
+        }
+
+        const data = JSON.parse(text);
+
+        // ✅ SOLO aquí cacheamos
+        cacheZonas.add(zonaKey);
 
         data.elements.forEach(el => {
           if (!el.lat || !el.lon) return;
 
-          const nombre = el.tags.name || "Sin nombre";
-          const tipo = el.tags.amenity || el.tags.tourism || "lugar";
+          const nombre = el.tags?.name || "Sin nombre";
 
           const marker = L.marker([el.lat, el.lon]).addTo(map);
+          marker.bindPopup(`<strong>${nombre}</strong>`);
 
-          marker.bindPopup(`
-        <strong>${nombre}</strong><br>
-        Tipo: ${tipo}<br>
-        Gluten Free: ${el.tags["diet:gluten_free"]}
-      `);
+          markers.push(marker);
         });
 
       } catch (e) {
-        console.error("Error cargando mapa GF:", e);
+
+        if (e.name === "AbortError") {
+          console.warn("⏱️ Timeout");
+
+          // 🔥 contar reintentos por zona
+          reintentos[zonaKey] = (reintentos[zonaKey] || 0) + 1;
+
+          if (reintentos[zonaKey] <= 2) {
+            console.log("🔁 Reintentando...", reintentos[zonaKey]);
+
+            setTimeout(() => {
+              cargando = false;
+              cargarSitiosSinGluten();
+            }, 2000);
+
+            return;
+          }
+
+        } else {
+          console.error("❌ Error real:", e);
+        }
+
       }
+
+      hideMapLoading();
+      cargando = false;
+    }
+
+
+    function limpiarMarkers() {
+      markers.forEach(m => map.removeLayer(m));
+      markers = [];
     }
 
   </script>
