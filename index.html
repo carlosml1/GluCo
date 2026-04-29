@@ -55,11 +55,10 @@
 
     </div>
 
-    <button id="staffFab">🎟️</button>
-    </body>
-
   </div>
 </div>
+
+<button id="staffFab">🎟️</button>
 
 
 <body>
@@ -272,6 +271,7 @@
     } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
     import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
+    import { where } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyALHRvYyTQSTytCPZfbYxd8nmQn0-MGRNg",
@@ -1306,38 +1306,65 @@
 
     function listenTickets() {
       const container = document.getElementById("ticketsContainer");
+      const user = localStorage.getItem('gluco_currentUser');
 
-      onSnapshot(collection(db, "Tickets"), snap => {
-        container.innerHTML = "";
+      container.innerHTML = "";
 
-        snap.forEach(docu => {
-          const t = docu.data();
+      // 🔵 1. Tickets SIN asignar
+      const q1 = query(
+        collection(db, "Tickets"),
+        where("staffAsignado", "==", null),
+        orderBy("fecha", "desc")
+      );
 
-          // 🔥 NO mostrar cerrados
-          if (t.estado === "cerrado") return;
+      // 🟢 2. Tickets asignados a TI
+      const q2 = query(
+        collection(db, "Tickets"),
+        where("staffAsignado", "==", user),
+        orderBy("fecha", "desc")
+      );
 
-          const html = `
-        <div class="ticket-card">
-          <strong>${t.tipo}</strong><br>
-          ${t.mensaje || ""}<br>
+      function render(docu) {
+        const t = docu.data();
 
-          Estado: ${t.estado}<br>
-          Staff: ${t.staffAsignado || "Nadie"}
+        if (t.estado === "cerrado") return;
+        if (!t.fecha || !t.fecha.toDate) return;
 
-          ${!t.staffAsignado
-              ? `<button onclick="aceptarTicket('${docu.id}')">Aceptar</button>`
-              : ""
-            }
+        const div = document.createElement("div");
+        div.className = "ticket-card";
 
-          ${t.staffAsignado === localStorage.getItem('gluco_currentUser')
-              ? `<button onclick="abrirChat('${docu.id}')">Abrir chat</button>`
-              : ""
-            }
-        </div>
-      `;
+        div.innerHTML = `
+      <strong>${t.tipo}</strong><br>
+      ${t.mensaje || ""}<br>
+      Estado: ${t.estado}<br>
+      Staff: ${t.staffAsignado || "Nadie"}
+    `;
 
-          container.insertAdjacentHTML("beforeend", html);
-        });
+        if (!t.staffAsignado) {
+          const btn = document.createElement("button");
+          btn.textContent = "Aceptar";
+          btn.onclick = () => aceptarTicket(docu.id);
+          div.appendChild(btn);
+        }
+
+        if (t.staffAsignado === user) {
+          const btn = document.createElement("button");
+          btn.textContent = "Abrir chat";
+          btn.onclick = () => abrirChat(docu.id);
+          div.appendChild(btn);
+        }
+
+        container.appendChild(div);
+      }
+
+      // 👂 escuchar sin asignar
+      onSnapshot(q1, snap => {
+        snap.forEach(render);
+      });
+
+      // 👂 escuchar asignados
+      onSnapshot(q2, snap => {
+        snap.forEach(render);
       });
     }
 
@@ -1367,40 +1394,42 @@
     // =========================
     // 💬 CHAT
     // =========================
+    let unsubscribeChat = null;
 
     window.abrirChat = function (ticketId) {
       currentTicket = ticketId;
       document.getElementById("chatModal").style.display = "flex";
 
+      if (unsubscribeChat) unsubscribeChat(); // 🔥 limpiar anterior
+
       const container = document.getElementById("chatMessages");
       const curUser = localStorage.getItem('gluco_currentUser');
 
-      onSnapshot(collection(db, "MensajesTicket"), async snap => {
+      const q = query(
+        collection(db, "MensajesTicket"),
+        where("ticketId", "==", ticketId),
+        orderBy("fecha", "asc")
+      );
+
+      unsubscribeChat = onSnapshot(q, snap => {
         container.innerHTML = "";
 
-        for (const d of snap.docs) {
+        snap.forEach(d => {
           const m = d.data();
-          if (m.ticketId !== ticketId) continue;
 
-          // 🔥 obtener nombre usuario
-          let nombre = m.autorEmail;
-
-          try {
-            const userSnap = await getDoc(doc(db, "Usuarios", m.autorEmail));
-            if (userSnap.exists()) {
-              nombre = userSnap.data().nombreUsuario;
-            }
-          } catch { }
+          // 🔥 IGNORAR MENSAJES SIN TIMESTAMP (SOLUCIÓN)
+          if (!m.fecha || !m.fecha.toDate) return;
 
           const esMio = m.autorEmail === curUser;
+          const nombre = m.autorNombre || m.autorEmail;
 
           container.innerHTML += `
-        <div class="chat-msg ${esMio ? 'chat-me' : 'chat-other'}">
-          <div class="chat-name">${nombre}</div>
-          <div>${m.mensaje}</div>
-        </div>
-      `;
-        }
+      <div class="chat-msg ${esMio ? 'chat-me' : 'chat-other'}">
+        <div class="chat-name">${nombre}</div>
+        <div>${m.mensaje}</div>
+      </div>
+    `;
+        });
 
         container.scrollTop = container.scrollHeight;
       });
