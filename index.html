@@ -1341,7 +1341,7 @@
             btnAceptar.textContent = "Aceptar";
 
             btnAceptar.addEventListener("click", () => {
-              aceptarTicket(docu.id);
+              window.aceptarTicket(docu.id);
             });
 
             card.appendChild(btnAceptar);
@@ -1353,7 +1353,7 @@
             btnChat.textContent = "Abrir chat";
 
             btnChat.addEventListener("click", () => {
-              abrirChat(docu.id);
+              window.abrirChat(docu.id);
             });
 
             card.appendChild(btnChat);
@@ -1518,8 +1518,8 @@
           btn.style.display = "flex";
 
           btn.onclick = () => {
-            abrirChat(ultimoTicket);
-            btn.style.display = "none"; // opcional
+            window.abrirChat(ultimoTicket);
+            btn.style.display = "none";
           };
         } else {
           btn.style.display = "none";
