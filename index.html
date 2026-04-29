@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-design-lite@1.3.0/material.teal-orange.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+  <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
 
   <link rel="stylesheet" href="style.css">
@@ -54,9 +54,6 @@
       <div id="ticketMsg"></div>
 
     </div>
-
-    <button id="staffFab">🎟️</button>
-    </body>
 
   </div>
 </div>
@@ -258,7 +255,7 @@
     🔄 Cargando lugares sin gluten...
   </div>
 
-  <button id="notifTicketBtn">💬 Soporte respondió</button>
+  <button id="notifTicketBtn">💬</button>
 
   <!-- Blocking overlay when not logged -->
   <div id="mustLoginOverlay">Por favor, inicia sesión para continuar.</div>
@@ -272,6 +269,7 @@
     } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
     import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyALHRvYyTQSTytCPZfbYxd8nmQn0-MGRNg",
@@ -286,6 +284,17 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      console.log("AUTH STATE:", user);
+
+      if (user) {
+        console.log("USUARIO AUTENTICADO ✅");
+
+      } else {
+        console.log("NO LOGUEADO ❌");
+      }
+    });
 
     const CATS = ["Pan", "Snack", "Bebida", "Pasta", "Pizza", "Dulce", "Cereales", "Pastel", "Reposteria", "Congelado", "Helado", "Cerveza", "Batido", "Embutido", "Salsa"];
 
@@ -1313,30 +1322,44 @@
         snap.forEach(docu => {
           const t = docu.data();
 
-          // 🔥 NO mostrar cerrados
           if (t.estado === "cerrado") return;
 
-          const html = `
-        <div class="ticket-card">
-          <strong>${t.tipo}</strong><br>
-          ${t.mensaje || ""}<br>
+          // 🔹 Crear tarjeta
+          const card = document.createElement("div");
+          card.className = "ticket-card";
 
-          Estado: ${t.estado}<br>
-          Staff: ${t.staffAsignado || "Nadie"}
-
-          ${!t.staffAsignado
-              ? `<button onclick="aceptarTicket('${docu.id}')">Aceptar</button>`
-              : ""
-            }
-
-          ${t.staffAsignado === localStorage.getItem('gluco_currentUser')
-              ? `<button onclick="abrirChat('${docu.id}')">Abrir chat</button>`
-              : ""
-            }
-        </div>
+          card.innerHTML = `
+        <strong>${t.tipo}</strong><br>
+        ${t.mensaje || ""}<br>
+        Estado: ${t.estado}<br>
+        Staff: ${t.staffAsignado || "Nadie"}
       `;
 
-          container.insertAdjacentHTML("beforeend", html);
+          // 🔹 BOTÓN ACEPTAR
+          if (!t.staffAsignado) {
+            const btnAceptar = document.createElement("button");
+            btnAceptar.textContent = "Aceptar";
+
+            btnAceptar.addEventListener("click", () => {
+              aceptarTicket(docu.id);
+            });
+
+            card.appendChild(btnAceptar);
+          }
+
+          // 🔹 BOTÓN ABRIR CHAT
+          if (t.staffAsignado === localStorage.getItem('gluco_currentUser')) {
+            const btnChat = document.createElement("button");
+            btnChat.textContent = "Abrir chat";
+
+            btnChat.addEventListener("click", () => {
+              abrirChat(docu.id);
+            });
+
+            card.appendChild(btnChat);
+          }
+
+          container.appendChild(card);
         });
       });
     }
@@ -1365,40 +1388,98 @@
     };
 
     // =========================
-    // 💬 CHAT
+    // 💬 CHAT TICKET
     // =========================
 
-    window.abrirChat = function (ticketId) {
+    let unsubscribeChat = null;
+
+    window.abrirChat = async function (ticketId) {
       currentTicket = ticketId;
+
       document.getElementById("chatModal").style.display = "flex";
 
+      const closeBtn = document.getElementById("closeTicketBtn");
       const container = document.getElementById("chatMessages");
 
-      onSnapshot(collection(db, "MensajesTicket"), snap => {
+      // 🔥 Mostrar botón cerrar solo staff
+      const ud = await getCurrentUserData();
+      closeBtn.style.display = (ud && ud.rango === "staff") ? "flex" : "none";
+
+      // 🔴 IMPORTANTE: limpiar listener anterior
+      if (unsubscribeChat) {
+        unsubscribeChat();
+      }
+
+      // 🔥 NUEVO LISTENER LIMPIO
+      unsubscribeChat = onSnapshot(collection(db, "MensajesTicket"), snap => {
+
         container.innerHTML = "";
+
+        const mensajes = [];
 
         snap.forEach(d => {
           const m = d.data();
-          if (m.ticketId !== ticketId) return;
+          if (m.ticketId === ticketId) {
+            mensajes.push(m);
+          }
+        });
+
+        // 🔥 ordenar por fecha (importante)
+        mensajes.sort((a, b) => {
+          const fa = a.fecha?.seconds || 0;
+          const fb = b.fecha?.seconds || 0;
+          return fa - fb;
+        });
+
+        mensajes.forEach(m => {
+
+          const nombre = m.autorNombre || m.autorEmail;
+
+          const initials = nombre
+            .split(" ")
+            .map(s => s[0])
+            .slice(0, 2)
+            .join("")
+            .toUpperCase();
+
+          const isMe = m.autorEmail === localStorage.getItem("gluco_currentUser");
 
           container.innerHTML += `
-        <div><strong>${m.autorEmail}:</strong> ${m.mensaje}</div>
+        <div class="msg-row ${isMe ? "user" : "staff"}">
+
+          ${!isMe ? `<div class="avatar">${initials}</div>` : ""}
+
+          <div>
+            <div class="msg-name">${nombre}</div>
+            <div class="msg-bubble ${isMe ? "user" : "staff"}">
+              ${m.mensaje}
+            </div>
+          </div>
+
+          ${isMe ? `<div class="avatar">${initials}</div>` : ""}
+
+        </div>
       `;
         });
+
+        container.scrollTop = container.scrollHeight;
       });
     };
 
     // =========================
-    // ✉️ ENVIAR MENSAJE
+    // ✉️ ENVIAR MENSAJE TICKET
     // =========================
 
     document.getElementById("sendChat").addEventListener("click", async () => {
       const text = document.getElementById("chatInput").value;
       if (!text) return;
 
+      const userData = await getCurrentUserData();
+
       await addDoc(collection(db, "MensajesTicket"), {
         ticketId: currentTicket,
-        autorEmail: localStorage.getItem('gluco_currentUser'),
+        autorEmail: userData.email,
+        autorNombre: userData.nombreUsuario,
         mensaje: text,
         fecha: serverTimestamp()
       });
@@ -1413,22 +1494,81 @@
 
     function listenUserResponses() {
       const cur = localStorage.getItem('gluco_currentUser');
+      const btn = document.getElementById("notifTicketBtn");
+
+      // 👇 IMPORTANTE: oculto al inicio
+      btn.style.display = "none";
 
       onSnapshot(collection(db, "MensajesTicket"), snap => {
+
+        let encontrado = false;
+        let ultimoTicket = null;
+
         snap.forEach(d => {
           const m = d.data();
 
+          // 🔥 si el mensaje NO es mío → mostrar botón
           if (m.autorEmail !== cur) {
-            const btn = document.getElementById("notifTicketBtn");
-            btn.style.display = "block";
-
-            btn.onclick = () => {
-              abrirChat(m.ticketId);
-            };
+            encontrado = true;
+            ultimoTicket = m.ticketId;
           }
         });
+
+        if (encontrado && ultimoTicket) {
+          btn.style.display = "flex";
+
+          btn.onclick = () => {
+            abrirChat(ultimoTicket);
+            btn.style.display = "none"; // opcional
+          };
+        } else {
+          btn.style.display = "none";
+        }
+
       });
     }
+    const cur = localStorage.getItem('gluco_currentUser');
+    const btn = document.getElementById("notifTicketBtn");
+    let ultimaFechaVista = 0;
+
+    onSnapshot(collection(db, "MensajesTicket"), async snap => {
+      let hayRespuesta = false;
+      let ultimoTicket = null;
+
+      for (const d of snap.docs) {
+        const m = d.data();
+
+        if (!m.fecha) continue;
+
+        const fecha = m.fecha.toDate().getTime();
+
+        if (fecha <= ultimaFechaVista) continue;
+
+        if (m.autorEmail === cur) continue;
+
+        const ticketSnap = await getDoc(doc(db, "Tickets", m.ticketId));
+        if (!ticketSnap.exists()) continue;
+
+        const ticket = ticketSnap.data();
+
+        const esParticipante =
+          ticket.autorEmail === cur ||
+          ticket.staffAsignado === cur;
+
+        if (!esParticipante) continue;
+        if (ticket.estado === "cerrado") continue;
+
+        hayRespuesta = true;
+        ultimoTicket = m.ticketId;
+
+        ultimaFechaVista = fecha;
+      }
+
+      if (hayRespuesta && ultimoTicket) {
+        btn.style.display = "flex";
+      }
+    });
+
 
     document.getElementById("closeChat").addEventListener("click", () => {
       document.getElementById("chatModal").style.display = "none";
