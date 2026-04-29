@@ -754,7 +754,8 @@ body {
 /* MENSAJE PROPIO */
 .chat-me {
   align-self: flex-end;
-  background: #D98A3D; /* 🔥 tu color */
+  background: #D98A3D;
+  /* 🔥 tu color */
   color: white;
   border-bottom-right-radius: 6px;
 }
@@ -877,7 +878,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   display: none;
   justify-content: center;
   align-items: center;
@@ -946,9 +947,11 @@ body {
 }
 
 #staffFab {
-  position: fixed;
-  bottom: 30px;
-  left: 30px;
+  position: fixed !important;
+  bottom: 30px !important;
+  left: 30px !important;
+  top: auto !important;
+  right: auto !important;
 
   width: 60px;
   height: 60px;
@@ -958,14 +961,13 @@ body {
   color: white;
   font-size: 26px;
 
-  display: none; /* 🔥 oculto por defecto */
+  display: none;
   align-items: center;
   justify-content: center;
-
   cursor: pointer;
-  z-index: 12000;
 
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  z-index: 12000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   transition: 0.25s;
 }
 
