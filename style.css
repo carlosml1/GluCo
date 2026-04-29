@@ -871,6 +871,112 @@ body {
   z-index: 12000;
 }
 
+.ticket-select-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.ticket-select-box {
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  background: #2c2c2c;
+  border-radius: 16px;
+  padding: 15px;
+  overflow-y: auto;
+  color: white;
+}
+
+.ticket-select-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.ticket-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ========================= */
+/* 🎟️ CARDS MODAL TICKETS */
+/* ========================= */
+
+.ticket-card-user {
+  background: #3a3a3a;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+  color: white;
+  border-left: 4px solid #D98A3D;
+}
+
+.ticket-card-user:hover {
+  background: #4a4a4a;
+  transform: scale(1.02);
+}
+
+.ticket-card-title {
+  font-weight: bold;
+  color: #D98A3D;
+  font-size: 1.05em;
+}
+
+.ticket-card-text {
+  font-size: 0.9em;
+  margin-top: 4px;
+  color: #ddd;
+}
+
+.ticket-card-status {
+  font-size: 0.8em;
+  margin-top: 6px;
+  color: #aaa;
+}
+
+#staffFab {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, #333, #666);
+  color: white;
+  font-size: 26px;
+
+  display: none; /* 🔥 oculto por defecto */
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  z-index: 12000;
+
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  transition: 0.25s;
+}
+
+#staffFab:hover {
+  transform: scale(1.1);
+}
+
+#staffFab:active {
+  transform: scale(0.95);
+}
+
 /* Hover */
 #notifTicketBtn:hover {
   transform: scale(1.1);

@@ -58,8 +58,7 @@
   </div>
 </div>
 
-<button id="staffFab">🎟️</button>
-
+<div id="staffFab">🛠️</div>
 
 <body>
 
@@ -258,6 +257,19 @@
   </div>
 
   <button id="notifTicketBtn">💬</button>
+
+  <div id="ticketSelectModal" class="ticket-select-modal">
+    <div class="ticket-select-box">
+
+      <div class="ticket-select-header">
+        <h3>🎟️ Tus tickets abiertos</h3>
+        <button id="closeTicketSelect">✖</button>
+      </div>
+
+      <div id="ticketSelectList" class="ticket-cards-container"></div>
+
+    </div>
+  </div>
 
   <!-- Blocking overlay when not logged -->
   <div id="mustLoginOverlay">Por favor, inicia sesión para continuar.</div>
@@ -1279,16 +1291,17 @@
     async function activarPanelStaff() {
       const ud = await getCurrentUserData();
 
-      console.log("USER DATA:", ud);
-
       if (ud && ud.rango === "staff") {
-        console.log("ES STAFF ✅");
-        staffFab.style.display = "flex";
+        staffFab.style.display = "flex"; // 👈 mostrar
         listenTickets();
       } else {
-        console.log("NO ES STAFF ❌");
+        staffFab.style.display = "none"; // 👈 ocultar (por seguridad)
       }
     }
+
+    staffFab.addEventListener("click", () => {
+      document.getElementById("staffPanel").style.display = "flex";
+    });
 
     document.getElementById("staffPanel").addEventListener("click", (e) => {
       if (e.target.id === "staffPanel") {
@@ -1472,14 +1485,64 @@
           if (m.autorEmail !== cur) {
             const btn = document.getElementById("notifTicketBtn");
             btn.style.display = "block";
-
-            btn.onclick = () => {
-              abrirChat(m.ticketId);
-            };
           }
         });
       });
     }
+
+    document.getElementById("notifTicketBtn").addEventListener("click", async () => {
+
+      const tickets = await obtenerTicketsAbiertosUsuario();
+
+      if (tickets.length === 0) {
+        alert("No tienes tickets abiertos.");
+        return;
+      }
+
+      // 🔥 SOLO 1 → abrir directo
+      if (tickets.length === 1) {
+        abrirChat(tickets[0].id);
+        return;
+      }
+
+      // 🔥 VARIOS → modal con cards
+      const list = document.getElementById("ticketSelectList");
+      list.innerHTML = "";
+
+      tickets.forEach(t => {
+
+        // 🔒 seguridad extra
+        if (t.estado === "cerrado") return;
+
+        const card = document.createElement("div");
+        card.className = "ticket-card-user";
+
+        card.innerHTML = `
+      <div class="ticket-card-title">${t.tipo}</div>
+
+      <div class="ticket-card-text">
+        ${t.mensaje || t.nombreProducto || "Sin descripción"}
+      </div>
+
+      <div class="ticket-card-status">
+        Estado: ${t.estado}
+      </div>
+    `;
+
+        card.onclick = () => {
+          document.getElementById("ticketSelectModal").style.display = "none";
+          abrirChat(t.id);
+        };
+
+        list.appendChild(card);
+      });
+
+      document.getElementById("ticketSelectModal").style.display = "flex";
+    });
+
+    document.getElementById("closeTicketSelect").addEventListener("click", () => {
+      document.getElementById("ticketSelectModal").style.display = "none";
+    });
 
     document.getElementById("closeChat").addEventListener("click", () => {
       document.getElementById("chatModal").style.display = "none";
@@ -1511,6 +1574,26 @@
         alert("Error al cerrar el ticket");
       }
     });
+
+    async function obtenerTicketsAbiertosUsuario() {
+      const cur = localStorage.getItem('gluco_currentUser');
+      if (!cur) return [];
+
+      const q = query(
+        collection(db, "Tickets"),
+        where("autorEmail", "==", cur),
+        where("estado", "in", ["abierto", "en_proceso"])
+      );
+
+      const snap = await getDocs(q);
+
+      const tickets = [];
+      snap.forEach(doc => {
+        tickets.push({ id: doc.id, ...doc.data() });
+      });
+
+      return tickets;
+    }
 
     // SCRIPT MAPA
 
