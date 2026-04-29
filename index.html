@@ -1149,7 +1149,6 @@
       }, 8000);
     }
 
-    // Render posts (simple, seguro y escapando HTML)
     // Render posts (seguro y escapando HTML)
     async function renderPostsList(items) {
       if (!items.length) {
@@ -1409,11 +1408,29 @@
     // =========================
     let unsubscribeChat = null;
 
-    window.abrirChat = function (ticketId) {
+    window.abrirChat = async function (ticketId) {
       currentTicket = ticketId;
       document.getElementById("chatModal").style.display = "flex";
 
-      if (unsubscribeChat) unsubscribeChat(); // 🔥 limpiar anterior
+      const btnCerrar = document.getElementById("closeTicketBtn");
+
+      // 🔥 OBTENER ESTADO DEL TICKET
+      const ticketRef = doc(db, "Tickets", ticketId);
+      const ticketSnap = await getDoc(ticketRef);
+
+      if (ticketSnap.exists()) {
+        const ticket = ticketSnap.data();
+
+        if (ticket.estado === "abierto" || ticket.estado === "en_proceso") {
+          btnCerrar.style.display = "block";
+          btnCerrar.disabled = false;
+        } else {
+          btnCerrar.style.display = "none"; // o disabled = true
+        }
+      }
+
+      // --- LO QUE YA TENÍAS ---
+      if (unsubscribeChat) unsubscribeChat();
 
       const container = document.getElementById("chatMessages");
       const curUser = localStorage.getItem('gluco_currentUser');
@@ -1429,25 +1446,22 @@
 
         snap.forEach(d => {
           const m = d.data();
-
-          // 🔥 IGNORAR MENSAJES SIN TIMESTAMP (SOLUCIÓN)
           if (!m.fecha || !m.fecha.toDate) return;
 
           const esMio = m.autorEmail === curUser;
           const nombre = m.autorNombre || m.autorEmail;
 
           container.innerHTML += `
-      <div class="chat-msg ${esMio ? 'chat-me' : 'chat-other'}">
-        <div class="chat-name">${nombre}</div>
-        <div>${m.mensaje}</div>
-      </div>
-    `;
+        <div class="chat-msg ${esMio ? 'chat-me' : 'chat-other'}">
+          <div class="chat-name">${nombre}</div>
+          <div>${m.mensaje}</div>
+        </div>
+      `;
         });
 
         container.scrollTop = container.scrollHeight;
       });
     };
-
     // =========================
     // ✉️ ENVIAR MENSAJE
     // =========================
